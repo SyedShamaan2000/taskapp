@@ -1,4 +1,4 @@
-const User = require('../models/User');
+const User = require('./../models/User');
 const argon2 = require('argon2');
 
 exports.loginController = async (req, res, next) => {

@@ -36,7 +36,7 @@ mongoose.connect(url);
 const connection = mongoose.connection;
 connection.once('open', () => {
     app.listen(port, () => {
-        console.log(`Server is running on port ${port}`)
+        console.log(`Server is running on http://localhost:${port}`)
     })
     console.log('DB connected');
 })
