@@ -32,10 +32,20 @@ exports.registerController = async (req, res, next) => {
         email,
         password: hashedPassword,
       });
-      return res.status(200).json({
+
+      // Send verification email
+      try {
+        await newUser.sendVerificationEmail();
+      } catch (emailError) {
+        console.error("Email verification sending failed:", emailError);
+        // Don't fail registration if email fails, user can resend later
+      }
+
+      return res.status(201).json({
         success: true,
-        message: "User created successfully",
-        user: newUser,
+        message:
+          "User created successfully. Please check your email to verify your account.",
+        userId: newUser._id,
       });
     } catch (error) {
       // Handle specific database errors (e.g., duplicate key errors)

@@ -17,6 +17,7 @@
     "express": "^4.19.2",
     "helmet": "^7.1.0",
     "mongoose": "^8.4.0",
+    "nodemailer": "^10.1.2",
     "validator": "^13.12.0"
   }
 }
