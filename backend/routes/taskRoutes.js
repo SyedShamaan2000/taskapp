@@ -3,6 +3,10 @@ const Task = require("./../models/Task");
 const router = express.Router();
 const User = require("./../models/User");
 
+const { requireVerifiedUserAndAuthenticated } = require("../middleware/authMiddleware");
+
+// Apply verification check to every task API call
+router.use(requireVerifiedUserAndAuthenticated);
 // Get all tasks
 router.post("/fetch", async (req, res) => {
   try {
