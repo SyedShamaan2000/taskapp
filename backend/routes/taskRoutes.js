@@ -3,38 +3,66 @@ const Task = require("./../models/Task");
 const router = express.Router();
 const User = require("./../models/User");
 
-const { requireVerifiedUserAndAuthenticated } = require("../middleware/authMiddleware");
+const {
+  requireVerifiedUserAndAuthenticated,
+} = require("../middleware/authMiddleware");
 
 // Apply verification check to every task API call
 router.use(requireVerifiedUserAndAuthenticated);
-// Get all tasks
-router.post("/fetch", async (req, res) => {
+// Get all tasks (RESTful: GET /tasks)
+router.get("/", async (req, res) => {
   try {
-    const { userId } = req.body;
-
-    const user = await User.findById(userId);
-
-    if (!user) {
-      return res.status(400).json({
+    const userId = req.user?._id || req.user?.userId;
+    if (!userId) {
+      return res.status(401).json({
         success: false,
-        message: "User not found",
+        message: "Authentication required",
       });
     }
 
-    const query = {
-      userId: userId,
-    };
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    const skip = (page - 1) * limit;
 
-    const tasks = await Task.find(query);
+    const sortParam = req.query.sort || "-createdAt";
+    const sortOptions = sortParam.split(",").map((s) => {
+      const dir = s.startsWith("-") ? -1 : 1;
+      const field = s.replace("-", "");
+      return [field, dir];
+    });
+    const sortObj = Object.fromEntries(sortOptions);
+
+    const filter = { userId: userId };
+    if (req.query.completed !== undefined) {
+      filter.completed =
+        req.query.completed === "true" || req.query.completed === "1";
+    }
+    if (req.query.priority) {
+      filter.priority = req.query.priority;
+    }
+    if (req.query.search) {
+      const regex = new RegExp(req.query.search, "i");
+      filter.$or = [{ title: regex }, { description: regex }];
+    }
+
+    const tasks = await Task.find(filter).sort(sortObj).skip(skip).limit(limit);
+
+    const total = await Task.countDocuments(filter);
 
     return res.status(200).json({
       success: true,
-      tasks: tasks,
+      tasks,
+      pagination: {
+        page,
+        limit,
+        total,
+        pages: Math.ceil(total / limit),
+      },
     });
   } catch (err) {
-    return res.status(401).json({
+    return res.status(400).json({
       success: false,
-      messages: err.message,
+      message: err.message,
     });
   }
 });
@@ -42,7 +70,15 @@ router.post("/fetch", async (req, res) => {
 // Create a new task
 router.post("/", async (req, res) => {
   try {
-    const { title, description, userId, completed } = req.body;
+    const { title, description, completed } = req.body;
+
+    const userId = req.user?._id || req.user?.userId;
+    if (!userId) {
+      return res.status(401).json({
+        success: false,
+        message: "Authentication required",
+      });
+    }
 
     if (!title || !description) {
       return res.status(408).json({
