@@ -1,5 +1,6 @@
 const User = require("./../models/User");
 const argon2 = require("argon2");
+const { signAccessToken, signRefreshToken } = require("./../utils/jwt");
 
 exports.loginController = async (req, res, next) => {
   try {
@@ -25,7 +26,7 @@ exports.loginController = async (req, res, next) => {
       return res.status(400).json({
         success: false,
         message: "Email not verified.",
-      })
+      });
     }
 
     const isMatch = await argon2.verify(user.password, password);
@@ -39,8 +40,13 @@ exports.loginController = async (req, res, next) => {
 
     delete user.password;
 
+        const accessToken = signAccessToken({ userId: user._id });
+    const refreshToken = signRefreshToken({ userId: user._id });
+
     return res.status(200).json({
       success: true,
+      accessToken,
+      refreshToken,
       message: `Welcome ${user.name}`,
       user,
     });
