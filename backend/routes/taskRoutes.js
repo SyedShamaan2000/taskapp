@@ -6,42 +6,41 @@ const User = require("./../models/User");
 const {
   requireVerifiedUserAndAuthenticated,
 } = require("../middleware/authMiddleware");
+const validate = require("../middleware/validate");
+const {
+  taskIdSchema,
+  taskQuerySchema,
+  taskSchema,
+  taskUpdateSchema,
+} = require("../utils/validators");
 
 // Apply verification check to every task API call
 router.use(requireVerifiedUserAndAuthenticated);
 // Get all tasks (RESTful: GET /tasks)
-router.get("/", async (req, res) => {
+router.get("/", validate(taskQuerySchema, "query"), async (req, res) => {
   try {
-    const userId = req.user?._id || req.user?.userId;
-    if (!userId) {
-      return res.status(401).json({
-        success: false,
-        message: "Authentication required",
-      });
-    }
-
-    const page = parseInt(req.query.page) || 1;
-    const limit = parseInt(req.query.limit) || 10;
+    const userId = req.user._id;
+    const { page, limit, sort, completed, priority, search } =
+      req.validatedQuery;
     const skip = (page - 1) * limit;
 
-    const sortParam = req.query.sort || "-createdAt";
-    const sortOptions = sortParam.split(",").map((s) => {
+    const sortOptions = sort.split(",").map((s) => {
       const dir = s.startsWith("-") ? -1 : 1;
-      const field = s.replace("-", "");
+      const field = s.replace(/^-/, "");
       return [field, dir];
     });
     const sortObj = Object.fromEntries(sortOptions);
 
-    const filter = { userId: userId };
-    if (req.query.completed !== undefined) {
-      filter.completed =
-        req.query.completed === "true" || req.query.completed === "1";
+    const filter = { userId };
+    if (completed !== undefined) {
+      filter.completed = completed;
     }
-    if (req.query.priority) {
-      filter.priority = req.query.priority;
+    if (priority) {
+      filter.priority = priority;
     }
-    if (req.query.search) {
-      const regex = new RegExp(req.query.search, "i");
+    if (search) {
+      const escapedSearch = search.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+      const regex = new RegExp(escapedSearch, "i");
       filter.$or = [{ title: regex }, { description: regex }];
     }
 
@@ -60,69 +59,61 @@ router.get("/", async (req, res) => {
       },
     });
   } catch (err) {
-    return res.status(400).json({
+    console.error(err);
+    return res.status(500).json({
       success: false,
-      message: err.message,
+      message: "Internal server error",
     });
   }
 });
 
 // Create a new task
-router.post("/", async (req, res) => {
+router.post("/", validate(taskSchema, "body"), async (req, res) => {
   try {
     const { title, description, completed } = req.body;
-
-    const userId = req.user?._id || req.user?.userId;
-    if (!userId) {
-      return res.status(401).json({
-        success: false,
-        message: "Authentication required",
-      });
-    }
-
-    if (!title || !description) {
-      return res.status(408).json({
-        success: false,
-        messages: "Please Fill all fields",
-      });
-    }
+    const userId = req.user._id;
 
     const user = await User.findById(userId);
 
     if (!user) {
       return res.status(400).json({
         success: false,
-        message: "User not found",
+        message: "Unable to create task",
       });
     }
 
-    let newTask = await Task.create({
-      title: title,
-      description: description,
-      completed: completed,
-      userId: userId,
+    const newTask = await Task.create({
+      title,
+      description,
+      completed,
+      userId,
     });
 
     user.tasks.push(newTask);
-    user.save();
-    return res.status(200).json({
+    await user.save();
+    return res.status(201).json({
       success: true,
       message: "Task Added Successfully",
+      task: newTask,
     });
   } catch (err) {
-    return res.status(401).json({
+    console.error(err);
+    return res.status(500).json({
       success: false,
-      messages: err.message,
+      message: "Internal server error",
     });
   }
 });
 
 // Delete Task
-router.delete("/:id", async (req, res) => {
+router.delete("/:id", validate(taskIdSchema, "params"), async (req, res) => {
   try {
     const { id } = req.params;
 
-    const task = await Task.findByIdAndDelete(id);
+    const task = await Task.findOneAndDelete({
+      _id: id,
+      userId: req.user._id,
+    });
 
     if (!task) {
       return res.status(404).json({
@@ -139,48 +130,50 @@ router.delete("/:id", async (req, res) => {
       message: "Task deleted successfully",
     });
   } catch (err) {
-    return res.status(400).json({
+    console.error(err);
+    return res.status(500).json({
       success: false,
-      message: err.message,
+      message: "Internal server error",
     });
   }
 });
 
 // Update Task
-router.put("/:id", async (req, res) => {
-  try {
-    const { id } = req.params;
-    const updatedData = req.body;
+router.put(
+  "/:id",
+  validate(taskIdSchema, "params"),
+  validate(taskUpdateSchema, "body"),
+  async (req, res) => {
+    try {
+      const { id } = req.params;
+      const updatedData = req.body;
 
-    const task = await Task.findByIdAndUpdate(id, updatedData, { new: true });
+      const task = await Task.findOneAndUpdate(
+        { _id: id, userId: req.user._id },
+        updatedData,
+        { new: true, runValidators: true },
+      );
 
-    if (!task) {
-      return res.status(404).json({
+      if (!task) {
+        return res.status(404).json({
+          success: false,
+          message: "Task not found",
+        });
+      }
+
+      return res.status(200).json({
+        success: true,
+        message: "Task updated successfully",
+        task,
+      });
+    } catch (err) {
+      console.error(err);
+      return res.status(500).json({
         success: false,
-        message: "Task not found",
+        message: "Internal server error",
       });
     }
-
-    // If the task's userId is changed, update the tasks array in both old and new users
-    if (updatedData.userId && task.userId !== updatedData.userId) {
-      await User.updateOne({ _id: task.userId }, { $pull: { tasks: id } });
-      await User.updateOne(
-        { _id: updatedData.userId },
-        { $push: { tasks: id } },
-      );
-    }
-
-    return res.status(200).json({
-      success: true,
-      message: "Task updated successfully",
-      task,
-    });
-  } catch (err) {
-    return res.status(400).json({
-      success: false,
-      message: err.message,
-    });
-  }
-});
+  },
+);
 
 module.exports = router;
