@@ -55,3 +55,4 @@ Working through `taskapp-improvements.md` one task at a time. One git branch per
   - Updated `backend/models/Task.js`: replaced `completed` with `status` enum; added `priority`, `dueDate`, `tags`; added `{ timestamps: true }`; added compound indexes on `userId/status/dueDate` and `tags`.
   - Updated `backend/models/User.js`: added `updatedAt`, `lastLogin`, `onlineStatus`; added indexes on `email` and `isVerified`.
 - Status: Complete — model updates committed.
+- Fix applied: removed duplicate `UserSchema.index({ email: 1 })` from `backend/models/User.js` (conflict with `unique: true`).
