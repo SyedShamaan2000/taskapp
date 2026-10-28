@@ -49,7 +49,6 @@ const UserSchema = new mongoose.Schema({
   },
 });
 
-UserSchema.index({ email: 1 });
 UserSchema.index({ isVerified: 1 });
 
 // Instance method to generate OTP
