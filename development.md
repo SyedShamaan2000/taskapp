@@ -44,3 +44,14 @@ Working through `taskapp-improvements.md` one task at a time. One git branch per
 - Added `TRUST_PROXY_HOPS` configuration for deployments behind a trusted reverse proxy. Set `ALLOWED_ORIGINS` as a comma-separated list.
 - Dependencies: `express-rate-limit`, `xss`, and `joi`. CSRF tokens use Node's built-in crypto module; production requires a 32-byte-or-longer `CSRF_SECRET`.
 - Validation: backend JavaScript syntax checks and HTTP smoke tests passed (CSRF rejection/token flow, rate limiting, CORS, CSP, malformed JSON, sanitization, and request validation); `npm audit --omit=dev --prefix backend` reports 0 vulnerabilities.
+
+---
+
+## 2025-10-27 — Task 4: Database & Data Modeling
+
+- Branch: `feature/db-data-modeling`
+- Goal: Add timestamps, due dates, priorities, categories, status fields, user metadata, and indexes.
+- Changes made:
+  - Updated `backend/models/Task.js`: replaced `completed` with `status` enum; added `priority`, `dueDate`, `tags`; added `{ timestamps: true }`; added compound indexes on `userId/status/dueDate` and `tags`.
+  - Updated `backend/models/User.js`: added `updatedAt`, `lastLogin`, `onlineStatus`; added indexes on `email` and `isVerified`.
+- Status: Complete — model updates committed.

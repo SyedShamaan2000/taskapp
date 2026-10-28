@@ -344,14 +344,3 @@ The TaskApp has a solid foundation with basic authentication, task management, a
 
 ---
 *Generated from engineering code review of the TaskApp repository*
-
----
-
-## 2025-10-27 — Task 4: Database & Data Modeling
-
-- Branch: `feature/db-data-modeling`
-- Goal: Add timestamps, due dates, priorities, categories, status fields, user metadata, and indexes.
-- Changes made:
-  - Updated `backend/models/Task.js`: replaced `completed` with `status` enum; added `priority`, `dueDate`, `tags`; added `{ timestamps: true }`; added compound indexes on `userId/status/dueDate` and `tags`.
-  - Updated `backend/models/User.js`: added `updatedAt`, `lastLogin`, `onlineStatus`; added indexes on `email` and `isVerified`.
-- Status: Complete — model updates committed.
