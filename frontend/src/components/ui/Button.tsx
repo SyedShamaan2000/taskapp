@@ -28,7 +28,11 @@ export const Button: React.FC<ButtonProps> = ({
 
   const dangerStyle: React.CSSProperties =
     variant === 'danger'
-      ? { color: 'var(--color-error)', backgroundColor: 'var(--color-error-bg)', border: '1px solid var(--color-error-border)' }
+      ? {
+          color: 'var(--color-error)',
+          backgroundColor: 'var(--color-error-bg)',
+          border: '1px solid var(--color-error-border)',
+        }
       : {};
 
   const outlineStyle: React.CSSProperties =

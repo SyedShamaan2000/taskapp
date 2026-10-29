@@ -36,7 +36,8 @@ exports.requireVerifiedUserAndAuthenticated = async (req, res, next) => {
       if (!user.isVerified) {
         return res.status(403).json({
           success: false,
-          message: 'Email is not verified. Please verify your email before accessing this application.',
+          message:
+            'Email is not verified. Please verify your email before accessing this application.',
         });
       }
       next();

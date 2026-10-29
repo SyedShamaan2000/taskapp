@@ -1,4 +1,4 @@
-const User = require("./../models/User");
+const User = require('./../models/User');
 
 exports.verifyEmailController = async (req, res, next) => {
   try {
@@ -8,7 +8,7 @@ exports.verifyEmailController = async (req, res, next) => {
     if (!email || !otp) {
       return res.status(400).json({
         success: false,
-        message: "Email and OTP are required",
+        message: 'Email and OTP are required',
       });
     }
 
@@ -17,7 +17,7 @@ exports.verifyEmailController = async (req, res, next) => {
     if (!user) {
       return res.status(404).json({
         success: false,
-        message: "User not found",
+        message: 'User not found',
       });
     }
 
@@ -25,7 +25,7 @@ exports.verifyEmailController = async (req, res, next) => {
     if (user.isVerified) {
       return res.status(400).json({
         success: false,
-        message: "Email is already verified",
+        message: 'Email is already verified',
       });
     }
 
@@ -34,7 +34,7 @@ exports.verifyEmailController = async (req, res, next) => {
     if (!isVerified) {
       return res.status(400).json({
         success: false,
-        message: "Invalid or expired OTP",
+        message: 'Invalid or expired OTP',
       });
     }
 
@@ -44,13 +44,13 @@ exports.verifyEmailController = async (req, res, next) => {
 
     return res.status(200).json({
       success: true,
-      message: "Email verified successfully",
+      message: 'Email verified successfully',
     });
   } catch (error) {
     console.error(error);
     return res.status(500).json({
       success: false,
-      message: "An error occurred during verification. Please try again later.",
+      message: 'An error occurred during verification. Please try again later.',
     });
   }
 };
@@ -64,7 +64,7 @@ exports.resendVerificationController = async (req, res, next) => {
     if (!email) {
       return res.status(400).json({
         success: false,
-        message: "Email is required",
+        message: 'Email is required',
       });
     }
 
@@ -73,7 +73,7 @@ exports.resendVerificationController = async (req, res, next) => {
     if (!user) {
       return res.status(404).json({
         success: false,
-        message: "User not found",
+        message: 'User not found',
       });
     }
 
@@ -81,7 +81,7 @@ exports.resendVerificationController = async (req, res, next) => {
     if (user.isVerified) {
       return res.status(400).json({
         success: false,
-        message: "Email is already verified",
+        message: 'Email is already verified',
       });
     }
 
@@ -90,13 +90,13 @@ exports.resendVerificationController = async (req, res, next) => {
 
     return res.status(200).json({
       success: true,
-      message: "Verification OTP sent successfully",
+      message: 'Verification OTP sent successfully',
     });
   } catch (error) {
     console.error(error);
     return res.status(500).json({
       success: false,
-      message: "An error occurred while resending OTP. Please try again later.",
+      message: 'An error occurred while resending OTP. Please try again later.',
     });
   }
 };

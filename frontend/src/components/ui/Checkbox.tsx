@@ -13,7 +13,8 @@ export const Checkbox: React.FC<CheckboxProps> = ({
   className = '',
   ...props
 }) => {
-  const checkboxId = id || (typeof label === 'string' ? label.toLowerCase().replace(/\s+/g, '-') : undefined);
+  const checkboxId =
+    id || (typeof label === 'string' ? label.toLowerCase().replace(/\s+/g, '-') : undefined);
 
   return (
     <label

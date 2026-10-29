@@ -1,6 +1,7 @@
 const jwt = require('jsonwebtoken');
 
-const ACCESS_SECRET = process.env.JWT_ACCESS_SECRET || process.env.JWT_SECRET || 'access-secret-change-me';
+const ACCESS_SECRET =
+  process.env.JWT_ACCESS_SECRET || process.env.JWT_SECRET || 'access-secret-change-me';
 const REFRESH_SECRET = process.env.JWT_REFRESH_SECRET || 'refresh-secret-change-me';
 
 const ACCESS_EXPIRY = process.env.JWT_ACCESS_EXPIRY || '15m';

@@ -166,13 +166,18 @@ export const VerifyOtpPage: React.FC = () => {
           {isSuccess ? (
             'Your account is ready. Redirecting to login...'
           ) : (
-            <>We sent a 6-digit code to <strong>{email || 'your email'}</strong></>
+            <>
+              We sent a 6-digit code to <strong>{email || 'your email'}</strong>
+            </>
           )}
         </p>
       </div>
 
       <Card elevated>
-        <form onSubmit={handleVerify} style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+        <form
+          onSubmit={handleVerify}
+          style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}
+        >
           {errorMessage && (
             <div
               style={{
@@ -249,8 +254,8 @@ export const VerifyOtpPage: React.FC = () => {
                       digit
                         ? 'var(--color-terracotta)'
                         : isSuccess
-                        ? 'var(--color-sage)'
-                        : 'var(--color-border)'
+                          ? 'var(--color-sage)'
+                          : 'var(--color-border)'
                     }`,
                     borderRadius: 'var(--radius-md)',
                     transition: 'all var(--transition-fast)',

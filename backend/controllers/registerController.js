@@ -1,5 +1,5 @@
-const User = require("./../models/User");
-const argon2 = require("argon2");
+const User = require('./../models/User');
+const argon2 = require('argon2');
 
 exports.registerController = async (req, res, next) => {
   try {
@@ -9,7 +9,7 @@ exports.registerController = async (req, res, next) => {
     if (!name || !email || !password) {
       return res.status(400).json({
         success: false,
-        message: "Please enter all fields",
+        message: 'Please enter all fields',
       });
     }
 
@@ -18,7 +18,7 @@ exports.registerController = async (req, res, next) => {
     if (user) {
       return res.status(400).json({
         success: false,
-        message: "Email already exists",
+        message: 'Email already exists',
       });
     }
 
@@ -37,14 +37,13 @@ exports.registerController = async (req, res, next) => {
       try {
         await newUser.sendVerificationEmail();
       } catch (emailError) {
-        console.error("Email verification sending failed:", emailError);
+        console.error('Email verification sending failed:', emailError);
         // Don't fail registration if email fails, user can resend later
       }
 
       return res.status(201).json({
         success: true,
-        message:
-          "User created successfully. Please check your email to verify your account.",
+        message: 'User created successfully. Please check your email to verify your account.',
         userId: newUser._id,
       });
     } catch (error) {
@@ -53,15 +52,14 @@ exports.registerController = async (req, res, next) => {
         // Common code for duplicate key errors in MongoDB
         return res.status(400).json({
           success: false,
-          message: "Email or username already exists", // More specific message
+          message: 'Email or username already exists', // More specific message
         });
       } else {
         // Handle other errors
         console.error(error); // Log the actual error for debugging
         return res.status(500).json({
           success: false,
-          message:
-            "An error occurred during registration. Please try again later.",
+          message: 'An error occurred during registration. Please try again later.',
         });
       }
     }
@@ -69,7 +67,7 @@ exports.registerController = async (req, res, next) => {
     console.error(error); // Log the actual error for debugging
     return res.status(500).json({
       success: false,
-      message: "An unexpected error occurred. Please try again later.",
+      message: 'An unexpected error occurred. Please try again later.',
     });
   }
 };

@@ -1,21 +1,21 @@
-const mongoose = require("mongoose");
-const validator = require("validator");
+const mongoose = require('mongoose');
+const validator = require('validator');
 
 const UserSchema = new mongoose.Schema({
   name: {
     type: String,
-    required: [true, "Name is required"],
+    required: [true, 'Name is required'],
   },
   email: {
     type: String,
-    required: [true, "Email is required"],
+    required: [true, 'Email is required'],
     unique: true,
     validate: validator.isEmail,
   },
   password: {
     type: String,
-    required: [true, "Password is required"],
-    minlength: [6, "Password must be atleast 6 characters"],
+    required: [true, 'Password is required'],
+    minlength: [6, 'Password must be atleast 6 characters'],
   },
   tasks: {
     type: [],
@@ -88,15 +88,15 @@ UserSchema.methods.markEmailAsVerified = function () {
 
 // Instance method to send verification email
 UserSchema.methods.sendVerificationEmail = async function () {
-  const emailService = require("../utils/emailService");
+  const _emailService = require('../utils/emailService');
   const otp = this.generateVerificationCode();
   await this.save(); // Save the OTP to database
-  console.log("Verification email sent to:", this.email);
-  console.log("OTP:", otp);
+  console.log('Verification email sent to:', this.email);
+  console.log('OTP:', otp);
   // await emailService.sendVerificationEmail(this.email, this.name, otp);
   return otp;
 };
 
-const User = mongoose.model("User", UserSchema);
+const User = mongoose.model('User', UserSchema);
 
 module.exports = User;

@@ -65,18 +65,12 @@ export const TasksPage: React.FC = () => {
     },
   });
 
-  const tasks = data?.tasks || [];
+  const tasks = useMemo(() => data?.tasks || [], [data?.tasks]);
   const pagination = data?.pagination;
 
   // Split active vs completed using status only (no completed boolean).
-  const activeTasks = useMemo(
-    () => tasks.filter((t) => t.status !== 'completed'),
-    [tasks]
-  );
-  const completedTasks = useMemo(
-    () => tasks.filter((t) => t.status === 'completed'),
-    [tasks]
-  );
+  const activeTasks = useMemo(() => tasks.filter((t) => t.status !== 'completed'), [tasks]);
+  const completedTasks = useMemo(() => tasks.filter((t) => t.status === 'completed'), [tasks]);
 
   // Total commitments calculation for pacing widget
   const totalCount = tasks.length;
@@ -109,21 +103,31 @@ export const TasksPage: React.FC = () => {
     },
     onMutate: async ({ id, status }) => {
       await queryClient.cancelQueries({ queryKey: ['tasks'] });
-      const previousData = queryClient.getQueryData<TasksResponse>(['tasks', page, limit, searchTerm, selectedPriority]);
+      const previousData = queryClient.getQueryData<TasksResponse>([
+        'tasks',
+        page,
+        limit,
+        searchTerm,
+        selectedPriority,
+      ]);
 
       if (previousData) {
-        queryClient.setQueryData<TasksResponse>(['tasks', page, limit, searchTerm, selectedPriority], {
-          ...previousData,
-          tasks: previousData.tasks.map((task) =>
-            task._id === id ? { ...task, status } : task
-          ),
-        });
+        queryClient.setQueryData<TasksResponse>(
+          ['tasks', page, limit, searchTerm, selectedPriority],
+          {
+            ...previousData,
+            tasks: previousData.tasks.map((task) => (task._id === id ? { ...task, status } : task)),
+          }
+        );
       }
       return { previousData };
     },
     onError: (err, _variables, context) => {
       if (context?.previousData) {
-        queryClient.setQueryData(['tasks', page, limit, searchTerm, selectedPriority], context.previousData);
+        queryClient.setQueryData(
+          ['tasks', page, limit, searchTerm, selectedPriority],
+          context.previousData
+        );
       }
       showToast(getApiErrorMessage(err), 'error');
     },
@@ -345,7 +349,9 @@ export const TasksPage: React.FC = () => {
                   }}
                 >
                   {/* Category Pill Selector */}
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
+                  <div
+                    style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}
+                  >
                     <span style={{ fontSize: '12px', color: 'var(--color-text-muted)' }}>Tag:</span>
                     {CATEGORY_TAGS.map((tag) => {
                       const isSelected = newTags.includes(tag);
@@ -362,8 +368,12 @@ export const TasksPage: React.FC = () => {
                           }}
                           style={{
                             border: `1px solid ${isSelected ? 'var(--color-terracotta)' : 'var(--color-border)'}`,
-                            backgroundColor: isSelected ? 'var(--color-terracotta-tint)' : '#FFFFFF',
-                            color: isSelected ? 'var(--color-terracotta)' : 'var(--color-text-muted)',
+                            backgroundColor: isSelected
+                              ? 'var(--color-terracotta-tint)'
+                              : '#FFFFFF',
+                            color: isSelected
+                              ? 'var(--color-terracotta)'
+                              : 'var(--color-text-muted)',
                             borderRadius: 'var(--radius-full)',
                             padding: '3px 10px',
                             fontSize: '12px',
@@ -379,7 +389,9 @@ export const TasksPage: React.FC = () => {
 
                   {/* Priority Selector */}
                   <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                    <span style={{ fontSize: '12px', color: 'var(--color-text-muted)' }}>Priority:</span>
+                    <span style={{ fontSize: '12px', color: 'var(--color-text-muted)' }}>
+                      Priority:
+                    </span>
                     <select
                       value={newPriority}
                       onChange={(e) => setNewPriority(e.target.value as TaskPriority)}
@@ -602,7 +614,14 @@ export const TasksPage: React.FC = () => {
                   </div>
 
                   <div style={{ flex: 1 }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                    <div
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '8px',
+                        flexWrap: 'wrap',
+                      }}
+                    >
                       <span
                         style={{
                           fontSize: '15px',
@@ -814,7 +833,9 @@ export const TasksPage: React.FC = () => {
             style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}
           >
             <div>
-              <label style={{ fontSize: '13px', fontWeight: 500, display: 'block', marginBottom: '6px' }}>
+              <label
+                style={{ fontSize: '13px', fontWeight: 500, display: 'block', marginBottom: '6px' }}
+              >
                 Title
               </label>
               <input
@@ -827,7 +848,9 @@ export const TasksPage: React.FC = () => {
             </div>
 
             <div>
-              <label style={{ fontSize: '13px', fontWeight: 500, display: 'block', marginBottom: '6px' }}>
+              <label
+                style={{ fontSize: '13px', fontWeight: 500, display: 'block', marginBottom: '6px' }}
+              >
                 Notes / Context
               </label>
               <textarea
@@ -839,7 +862,9 @@ export const TasksPage: React.FC = () => {
             </div>
 
             <div>
-              <label style={{ fontSize: '13px', fontWeight: 500, display: 'block', marginBottom: '6px' }}>
+              <label
+                style={{ fontSize: '13px', fontWeight: 500, display: 'block', marginBottom: '6px' }}
+              >
                 Priority
               </label>
               <select
@@ -856,15 +881,18 @@ export const TasksPage: React.FC = () => {
               </select>
             </div>
 
-            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '12px' }}>
+            <div
+              style={{
+                display: 'flex',
+                justifyContent: 'flex-end',
+                gap: '10px',
+                marginTop: '12px',
+              }}
+            >
               <Button type="button" variant="ghost" onClick={() => setEditingTask(null)}>
                 Cancel
               </Button>
-              <Button
-                type="submit"
-                variant="terracotta"
-                isLoading={updateTaskMutation.isPending}
-              >
+              <Button type="submit" variant="terracotta" isLoading={updateTaskMutation.isPending}>
                 Save changes
               </Button>
             </div>

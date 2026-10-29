@@ -6,11 +6,11 @@ const validate = (schema, property) => (req, res, next) => {
   if (error) {
     return res.status(400).json({
       success: false,
-      message: "Invalid request data",
+      message: 'Invalid request data',
     });
   }
 
-  if (property === "query") {
+  if (property === 'query') {
     req.validatedQuery = value;
   } else {
     req[property] = value;

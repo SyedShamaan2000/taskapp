@@ -56,6 +56,7 @@ Working through `taskapp-improvements.md` one task at a time. One git branch per
   - Updated `backend/models/User.js`: added `updatedAt`, `lastLogin`, `onlineStatus`; added indexes on `email` and `isVerified`.
 - Status: Complete — model updates committed.
 - Fix applied: removed duplicate `UserSchema.index({ email: 1 })` from `backend/models/User.js` (conflict with `unique: true`).
+
 ---
 
 ## 2025-10-30 — Task 5: Frontend Rebuild with TypeScript + Vite
@@ -65,13 +66,16 @@ Working through `taskapp-improvements.md` one task at a time. One git branch per
 - Documentation: Established `tasks/` directory with `task1.md`, `task2.md`, `task3.md`, `task4.md`, and `task5.md` complying with `agent-rule.md`.
 
 ### Background
+
 The current frontend is built with Create React App (JavaScript) and uses:
+
 - `window.location.reload()` after every operation (poor state management)
 - localStorage for auth state
 - Basic styling with minimal design system
 - POST /tasks/fetch (backend uses GET /tasks now)
 
 ### Requirements
+
 - Use **TypeScript + Vite** for faster builds and better tooling
 - Implement **TanStack Query** for server state management (replaces manual axios calls)
 - Implement **React Router v6** for client-side routing
@@ -84,10 +88,11 @@ The current frontend is built with Create React App (JavaScript) and uses:
 - WCAG AA accessibility compliance
 
 ### Files Planned for Creation
+
 - `frontend/package.json` — Vite, React 18, TypeScript, TanStack Query, Zustand, Axios, Lucide React
 - `frontend/vite.config.ts` — Vite config with dev proxy to `http://localhost:3000`
 - `frontend/tsconfig.json` & `frontend/tsconfig.node.json` — TypeScript configuration
-- `frontend/index.html` — HTML entry point with Google Fonts (*Newsreader* & *Plus Jakarta Sans*)
+- `frontend/index.html` — HTML entry point with Google Fonts (_Newsreader_ & _Plus Jakarta Sans_)
 - `frontend/src/index.css` — Tranquil TaskTrackr design system and tokens
 - `frontend/src/types/index.ts` — Domain and API schemas
 - `frontend/src/lib/api.ts` — Axios client with CSRF token handshake and silent JWT refresh interceptor
@@ -97,6 +102,7 @@ The current frontend is built with Create React App (JavaScript) and uses:
 - `frontend/src/App.tsx` & `frontend/src/main.tsx` — Routing, QueryClientProvider, and ProtectedRoute
 
 ### Staged Implementation Milestones
+
 1. **Milestone 1 — Project Scaffold & Design System:**
    - Scaffold `frontend/` directory with Vite, TypeScript, dependencies, dev proxy to backend.
    - Setup `index.html` with fonts and `src/index.css` containing complete TaskTrackr design system tokens.
@@ -115,14 +121,16 @@ The current frontend is built with Create React App (JavaScript) and uses:
    - Implement `/tasks` workspace: header with edition date, pacing/progress wave indicator, quick-add form, filter/search toolbar, task cards with circular checkboxes, edit/delete actions, completed archive, pagination, empty states, and toast notifications.
    - Protected route wrapper and 404 page.
    - Proposed Commit 4: `feat(frontend): implement tasks workspace, progress widget, filters, and protected routing`
+
 ### Implementation Status & Verification Results
+
 - **Status:** Complete — All milestones implemented and verified.
 - **Scaffold & Build:** Created `/frontend` with Vite, React 18, and strict TypeScript (`tsconfig.json`).
 - **Design System:** Implemented full TaskTrackr tranquil design system in `frontend/src/index.css` per `plan-ui.md`:
   - Warm cream background base (`#FAF6EE` / `#FFF8F4`).
   - Warm Charcoal typography (`#2B2620`) and Muted Warm Gray (`#8A8173`).
   - Accent palette: Muted Terracotta (`#B8643C`) and Soft Sage (`#7D8F6B`).
-  - Google Fonts: *Newsreader* serif headlines + *Plus Jakarta Sans* UI sans-serif.
+  - Google Fonts: _Newsreader_ serif headlines + _Plus Jakarta Sans_ UI sans-serif.
 - **Networking & Security:**
   - Implemented `src/lib/api.ts` with Axios, automatic CSRF token fetching (`/csrf-token`), and `CSRF-Token` headers on state-changing requests.
   - Silent token refresh interceptor automatically rotating expired access tokens via `/auth/refresh` upon 401 responses.
@@ -191,4 +199,36 @@ The current frontend is built with Create React App (JavaScript) and uses:
   - Tested Vite dev server with `curl -i -H "Accept: text/html" http://localhost:5173/tasks` — returned `200 OK` serving `index.html`.
   - Tested JSON API requests via `curl -i -H "Accept: application/json" http://localhost:5173/tasks` — confirmed proper forwarding to the backend proxy target.
 
+---
 
+## 2026-10-30 — Task 10: ESLint & Prettier Code Quality CI and Pre-Commit Hooks
+
+- Branch: `ci/lint-and-format`
+- Goal: Set up automated code formatting (Prettier) and linting (ESLint) for both frontend and backend, configure GitHub Actions CI quality checks, and add local pre-commit hooks via Husky + lint-staged.
+- Changes:
+  - **Frontend:**
+    - Added `eslint`, `@eslint/js`, `typescript-eslint`, `eslint-plugin-react-hooks`, `eslint-plugin-react-refresh`, `eslint-config-prettier`, and `prettier` to `frontend/package.json`.
+    - Created `frontend/eslint.config.js` with TypeScript and React Hook linting rules.
+    - Created `frontend/.prettierrc` and `frontend/.prettierignore`.
+    - Added `lint`, `lint:fix`, `format`, `format:check` npm scripts to `frontend/package.json`.
+    - Memoized `tasks` in `frontend/src/pages/TasksPage.tsx` to satisfy `react-hooks/exhaustive-deps`.
+  - **Backend:**
+    - Added `eslint`, `@eslint/js`, `prettier`, `eslint-config-prettier`, and `globals` to `backend/package.json`.
+    - Created `backend/eslint.config.js` tuned for Node.js CommonJS environment and Express route/middleware handler patterns.
+    - Created `backend/.prettierrc` and `backend/.prettierignore`.
+    - Added `lint`, `lint:fix`, `format`, `format:check` npm scripts to `backend/package.json`.
+    - Prefixed unused `_emailService` in `backend/models/User.js`.
+  - **Root & Git Hooks:**
+    - Initialized root `package.json` with Husky, `lint-staged`, and root workspace scripts (`npm run lint`, `npm run format:check`, `npm run format`).
+    - Added `.husky/pre-commit` running `npx lint-staged`.
+    - Configured `lint-staged.config.js` to automatically format with Prettier and run targeted ESLint on staged frontend and backend files before commits.
+    - Updated root `.gitignore` to ignore root `node_modules/` and `dist/`.
+  - **GitHub Actions CI:**
+    - Created `.github/workflows/code-quality.yml` running parallel matrix checks (`22.x`, `24.x`) for backend and frontend (`npm ci`, `npm run format:check`, and `npm run lint`).
+  - **Docs:**
+    - Created `tasks/task10.md`, updated `development.md`.
+- Verification:
+  - `npm run format:check` and `npm run lint` at root pass cleanly with 0 errors across backend and frontend.
+  - `npm --prefix frontend run build` passes with zero TypeScript errors.
+  - Tested `npx lint-staged` with staged files to verify pre-commit formatting and lint execution.
+  - Backend syntax checks (`node --check server.js`, `node --check app.js`) pass.

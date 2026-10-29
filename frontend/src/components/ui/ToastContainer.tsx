@@ -14,11 +14,7 @@ export const ToastContainer: React.FC = () => {
   };
 
   return (
-    <div
-      className="toast-pill"
-      role="status"
-      aria-live="polite"
-    >
+    <div className="toast-pill" role="status" aria-live="polite">
       {iconMap[toast.type || 'info']}
       <span>{toast.message}</span>
     </div>

@@ -8,8 +8,8 @@ class EmailService {
       secure: process.env.SMTP_SECURE === 'true', // true for 465, false for other ports
       auth: {
         user: process.env.SMTP_USER,
-        pass: process.env.SMTP_PASS
-      }
+        pass: process.env.SMTP_PASS,
+      },
     });
   }
 
@@ -31,7 +31,7 @@ class EmailService {
           <hr style="border: none; border-top: 1px solid #eee; margin: 30px 0;">
           <p style="color: #666; font-size: 12px;">This is an automated email. Please do not reply.</p>
         </div>
-      `
+      `,
     };
 
     try {

@@ -1,32 +1,30 @@
-const express = require("express");
-const Task = require("./../models/Task");
+const express = require('express');
+const Task = require('./../models/Task');
 const router = express.Router();
-const User = require("./../models/User");
+const User = require('./../models/User');
 
-const {
-  requireVerifiedUserAndAuthenticated,
-} = require("../middleware/authMiddleware");
-const validate = require("../middleware/validate");
+const { requireVerifiedUserAndAuthenticated } = require('../middleware/authMiddleware');
+const validate = require('../middleware/validate');
 const {
   taskIdSchema,
   taskQuerySchema,
   taskSchema,
   taskUpdateSchema,
-} = require("../utils/validators");
+} = require('../utils/validators');
 
 // Apply verification check to every task API call
 router.use(requireVerifiedUserAndAuthenticated);
 // Get all tasks (RESTful: GET /tasks)
-router.get("/", validate(taskQuerySchema, "query"), async (req, res) => {
+router.get('/', validate(taskQuerySchema, 'query'), async (req, res) => {
   try {
     const userId = req.user._id;
     const { page, limit, sort, status, priority, search } = req.validatedQuery;
     const skip = (page - 1) * limit;
 
     // Build mongoose sort object from comma-separated ±field list.
-    const sortOptions = sort.split(",").map((s) => {
-      const dir = s.startsWith("-") ? -1 : 1;
-      const field = s.replace(/^-/, "");
+    const sortOptions = sort.split(',').map((s) => {
+      const dir = s.startsWith('-') ? -1 : 1;
+      const field = s.replace(/^-/, '');
       return [field, dir];
     });
     const sortObj = Object.fromEntries(sortOptions);
@@ -39,8 +37,8 @@ router.get("/", validate(taskQuerySchema, "query"), async (req, res) => {
       filter.priority = priority;
     }
     if (search) {
-      const escapedSearch = search.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-      const regex = new RegExp(escapedSearch, "i");
+      const escapedSearch = search.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      const regex = new RegExp(escapedSearch, 'i');
       filter.$or = [{ title: regex }, { description: regex }];
     }
 
@@ -62,13 +60,13 @@ router.get("/", validate(taskQuerySchema, "query"), async (req, res) => {
     console.error(err);
     return res.status(500).json({
       success: false,
-      message: "Internal server error",
+      message: 'Internal server error',
     });
   }
 });
 
 // Create a new task (status / priority / tags / dueDate aligned with Task model)
-router.post("/", validate(taskSchema, "body"), async (req, res) => {
+router.post('/', validate(taskSchema, 'body'), async (req, res) => {
   try {
     // req.body is the Joi-validated value (includes defaults for status/priority/tags).
     const { title, description, status, priority, dueDate, tags } = req.body;
@@ -79,7 +77,7 @@ router.post("/", validate(taskSchema, "body"), async (req, res) => {
     if (!user) {
       return res.status(400).json({
         success: false,
-        message: "Unable to create task",
+        message: 'Unable to create task',
       });
     }
 
@@ -97,20 +95,20 @@ router.post("/", validate(taskSchema, "body"), async (req, res) => {
     await user.save();
     return res.status(201).json({
       success: true,
-      message: "Task Added Successfully",
+      message: 'Task Added Successfully',
       task: newTask,
     });
   } catch (err) {
     console.error(err);
     return res.status(500).json({
       success: false,
-      message: "Internal server error",
+      message: 'Internal server error',
     });
   }
 });
 
 // Delete Task
-router.delete("/:id", validate(taskIdSchema, "params"), async (req, res) => {
+router.delete('/:id', validate(taskIdSchema, 'params'), async (req, res) => {
   try {
     const { id } = req.params;
 
@@ -122,7 +120,7 @@ router.delete("/:id", validate(taskIdSchema, "params"), async (req, res) => {
     if (!task) {
       return res.status(404).json({
         success: false,
-        message: "Task not found",
+        message: 'Task not found',
       });
     }
 
@@ -131,53 +129,52 @@ router.delete("/:id", validate(taskIdSchema, "params"), async (req, res) => {
 
     return res.status(200).json({
       success: true,
-      message: "Task deleted successfully",
+      message: 'Task deleted successfully',
     });
   } catch (err) {
     console.error(err);
     return res.status(500).json({
       success: false,
-      message: "Internal server error",
+      message: 'Internal server error',
     });
   }
 });
 
 // Update Task
 router.put(
-  "/:id",
-  validate(taskIdSchema, "params"),
-  validate(taskUpdateSchema, "body"),
+  '/:id',
+  validate(taskIdSchema, 'params'),
+  validate(taskUpdateSchema, 'body'),
   async (req, res) => {
     try {
       const { id } = req.params;
       const updatedData = req.body;
 
-      const task = await Task.findOneAndUpdate(
-        { _id: id, userId: req.user._id },
-        updatedData,
-        { new: true, runValidators: true },
-      );
+      const task = await Task.findOneAndUpdate({ _id: id, userId: req.user._id }, updatedData, {
+        new: true,
+        runValidators: true,
+      });
 
       if (!task) {
         return res.status(404).json({
           success: false,
-          message: "Task not found",
+          message: 'Task not found',
         });
       }
 
       return res.status(200).json({
         success: true,
-        message: "Task updated successfully",
+        message: 'Task updated successfully',
         task,
       });
     } catch (err) {
       console.error(err);
       return res.status(500).json({
         success: false,
-        message: "Internal server error",
+        message: 'Internal server error',
       });
     }
-  },
+  }
 );
 
 module.exports = router;

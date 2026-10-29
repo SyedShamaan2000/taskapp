@@ -90,7 +90,10 @@ export const LoginPage: React.FC = () => {
       </div>
 
       <Card elevated>
-        <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+        <form
+          onSubmit={handleSubmit}
+          style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}
+        >
           {/* Verified alert banner if coming from OTP success */}
           {isVerifiedFromRedirect && (
             <div

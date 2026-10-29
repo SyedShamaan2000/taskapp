@@ -86,7 +86,10 @@ export const RegisterPage: React.FC = () => {
       </div>
 
       <Card elevated>
-        <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+        <form
+          onSubmit={handleSubmit}
+          style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}
+        >
           {errorMessage && (
             <div
               style={{
@@ -151,7 +154,8 @@ export const RegisterPage: React.FC = () => {
               marginTop: '4px',
             }}
           >
-            By joining, you embrace an intentional routine free from intrusive alerts and artificial urgency.
+            By joining, you embrace an intentional routine free from intrusive alerts and artificial
+            urgency.
           </p>
         </form>
       </Card>
