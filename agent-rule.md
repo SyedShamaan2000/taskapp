@@ -6,6 +6,7 @@ description: Core operating rules for the local coding agent
 
 ## 1. Git & Permissions
 
+- **No Direct Changes to `main`:** No changes should be directly made to the `main` branch. Always create a new branch first before making any changes.
 - Never run `git` commands (commit, push, merge, rebase, reset --hard, checkout on shared branches, etc.) without explicit user confirmation for that specific action.
 - Do not auto-commit or auto-push as a side effect of a task. Propose the commit message and wait for a go-ahead.
 - Destructive git operations (force push, hard reset, branch deletion) require an explicit, separate confirmation — don't bundle them into a "yes" for something else.
@@ -40,7 +41,7 @@ Every project should have a clean, conventional structure, including:
 - If requirements are ambiguous or incomplete, **ask clarifying questions** instead of guessing and proceeding.
 - Don't start implementation until the plan (or the answers to open questions) has been confirmed.
 
-## 5. Task Documentation
+## 5. Task Documentation & Progress Tracking
 
 - For every task, create/update a `tasks/` folder in the project with sequentially numbered files: `task1.md`, `task2.md`, etc.
 - Each task file must include:
@@ -49,3 +50,4 @@ Every project should have a clean, conventional structure, including:
   - **Scope** — what's explicitly in/out of scope.
   - **Notes** — any decisions, trade-offs, or follow-ups.
 - Task files are written _before_ or alongside the implementation, not as an afterthought.
+- **Keep `development.md` Updated:** Continuously update and append to `development.md` as development progresses, logging branch information, goals, changes made, files modified, and verification results.
