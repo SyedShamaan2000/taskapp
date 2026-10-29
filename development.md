@@ -140,14 +140,3 @@ The current frontend is built with Create React App (JavaScript) and uses:
   - Vite dev server tested and serving on `http://localhost:5173/`.
 
 
-
-## Branch: `docs/incremental-commits-tracking` (Task 6)
-
-- **Goal:** Reinforce incremental commits and continuous `development.md` tracking in agent rules (local + project).
-- **Changes:**
-  - Updated local `~/.cursor/rules/agent-operating.mdc`: small/focused commits; append `development.md` with what changed/modified.
-  - Updated `agent-rule.md` with the same guidance.
-  - Added `tasks/task6.md`.
-  - Removed committed `.cursor/rules/` from the repo (local-only); added `.cursor/` to `.gitignore`.
-- **Files modified/created:** `agent-rule.md`, `tasks/task6.md`, `development.md`, `.gitignore` (local rule remains at `~/.cursor/rules/agent-operating.mdc`).
-- **Verification:** Content review of rule wording; no app code changes.
