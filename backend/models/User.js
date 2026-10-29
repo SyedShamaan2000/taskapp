@@ -36,7 +36,20 @@ const UserSchema = new mongoose.Schema({
     type: Date,
     default: Date.now,
   },
+  updatedAt: {
+    type: Date,
+    default: Date.now,
+  },
+  lastLogin: {
+    type: Date,
+  },
+  onlineStatus: {
+    type: Boolean,
+    default: false,
+  },
 });
+
+UserSchema.index({ isVerified: 1 });
 
 // Instance method to generate OTP
 UserSchema.methods.generateVerificationCode = function () {
