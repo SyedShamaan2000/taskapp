@@ -1,7 +1,7 @@
 # This workflow will do a clean installation of node dependencies,
 # build the source code, and run tests for the backend package.
 
-name: NPM Check CI
+name: NPM Installation Check CI
 
 on:
   push:
