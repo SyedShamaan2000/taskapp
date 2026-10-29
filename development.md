@@ -139,4 +139,19 @@ The current frontend is built with Create React App (JavaScript) and uses:
   - `npm run build` executed cleanly (`tsc && vite build`), generating optimized production bundle in `frontend/dist/` with zero TypeScript errors.
   - Vite dev server tested and serving on `http://localhost:5173/`.
 
+---
+
+## 2026-10-30 — Backlog refresh: task create failure + errors + passwords
+
+- Branch: `docs/taskapp-improvements-backlog`
+- Goal: Investigate why task create fails after successful auth; document prioritized fixes without rushing into code.
+- Findings:
+  - Auth path (register / verify / login) works with JWT + CSRF + rebuilt frontend.
+  - Task create fails due to **schema drift**: Task model + frontend use `status` / `priority` / `tags`; Joi `taskSchema` and `POST /tasks` still expect legacy `completed`-centric payloads. Unknown keys → 400 `"Invalid request data"`. Updates/filters similarly misaligned.
+  - Error handling is partial: validation hides field details; FE only surfaces top-level `message`.
+  - Password rules are weak/inconsistent (FE min 8, BE Joi min 6, no complexity).
+- Docs updated:
+  - Rewrote `taskapp-improvements.md` as a living prioritized backlog (P0 create fix, P1 errors, P1 strong passwords, P2 later).
+  - Added `tasks/task6.md` (API/model align), `tasks/task7.md` (structured errors), `tasks/task8.md` (strong passwords).
+- Status: Documentation only — **no code fixes yet**. Awaiting confirmation on `completed` vs `status` API shape and password policy before implementation.
 
