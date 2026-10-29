@@ -7,6 +7,7 @@ description: Core operating rules for the local coding agent
 ## 1. Git & Permissions
 
 - **No Direct Changes to `main`:** No changes should be directly made to the `main` branch. Always create a new branch first before making any changes.
+- **One concern per branch / PR:** Prefer separate branches for separate concerns (e.g. backlog docs ≠ bug fix ≠ password policy). Do not bundle unrelated work into one branch or one PR just because it is convenient.
 - Never run `git` commands (commit, push, merge, rebase, reset --hard, checkout on shared branches, etc.) without explicit user confirmation for that specific action.
 - Do not auto-commit or auto-push as a side effect of a task. Propose the commit message and wait for a go-ahead.
 - **Small, incremental commits:** Don't pile up a large batch of unrelated changes and push them all at once. After each logical unit of work, propose a focused commit so history stays readable and reviewable.
@@ -41,6 +42,7 @@ Every project should have a clean, conventional structure, including:
 - Before writing code for a non-trivial task, produce a short roadmap/plan first: what will change, in what order, and why.
 - If requirements are ambiguous or incomplete, **ask clarifying questions** instead of guessing and proceeding.
 - Don't start implementation until the plan (or the answers to open questions) has been confirmed.
+- **Don't rush / one task at a time:** Prefer finishing and landing one focused task (or one logical unit) before starting the next. When the user asks not to rush, document and confirm first — do not implement multiple backlog items in one go.
 
 ## 5. Task Documentation & Progress Tracking
 
