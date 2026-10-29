@@ -56,3 +56,87 @@ Working through `taskapp-improvements.md` one task at a time. One git branch per
   - Updated `backend/models/User.js`: added `updatedAt`, `lastLogin`, `onlineStatus`; added indexes on `email` and `isVerified`.
 - Status: Complete — model updates committed.
 - Fix applied: removed duplicate `UserSchema.index({ email: 1 })` from `backend/models/User.js` (conflict with `unique: true`).
+---
+
+## 2025-10-30 — Task 5: Frontend Rebuild with TypeScript + Vite
+
+- Branch: `feature/rebuild-frontend`
+- Goal: Complete frontend rebuild following the PRD in `plan-ui.md` with tranquil aesthetic, TypeScript + Vite, and proper state management.
+- Documentation: Established `tasks/` directory with `task1.md`, `task2.md`, `task3.md`, `task4.md`, and `task5.md` complying with `agent-rule.md`.
+
+### Background
+The current frontend is built with Create React App (JavaScript) and uses:
+- `window.location.reload()` after every operation (poor state management)
+- localStorage for auth state
+- Basic styling with minimal design system
+- POST /tasks/fetch (backend uses GET /tasks now)
+
+### Requirements
+- Use **TypeScript + Vite** for faster builds and better tooling
+- Implement **TanStack Query** for server state management (replaces manual axios calls)
+- Implement **React Router v6** for client-side routing
+- Implement **Zustand** for lightweight client state (auth tokens, user session)
+- Follow the **TaskTrackr PRD** aesthetic: warm cream background (`#FAF6EE`), terracotta accent (`#B8643C`), sage success (`#7D8F6B`), editorial typography (Newsreader + Plus Jakarta Sans)
+- Implement full auth flow: Register → OTP verification → Login → Tasks workspace
+- Implement task CRUD with pagination, sorting, filtering, and optimistic updates
+- Add proper routing protection and 404 fallback
+- Responsive design for mobile and desktop
+- WCAG AA accessibility compliance
+
+### Files Planned for Creation
+- `frontend/package.json` — Vite, React 18, TypeScript, TanStack Query, Zustand, Axios, Lucide React
+- `frontend/vite.config.ts` — Vite config with dev proxy to `http://localhost:3000`
+- `frontend/tsconfig.json` & `frontend/tsconfig.node.json` — TypeScript configuration
+- `frontend/index.html` — HTML entry point with Google Fonts (*Newsreader* & *Plus Jakarta Sans*)
+- `frontend/src/index.css` — Tranquil TaskTrackr design system and tokens
+- `frontend/src/types/index.ts` — Domain and API schemas
+- `frontend/src/lib/api.ts` — Axios client with CSRF token handshake and silent JWT refresh interceptor
+- `frontend/src/store/authStore.ts` — Zustand authentication store
+- `frontend/src/components/ui/` — Button, Input, Card, Checkbox, Badge, Toast, Modal, Skeleton
+- `frontend/src/pages/` — Register, VerifyOtp, Login, Tasks, NotFound
+- `frontend/src/App.tsx` & `frontend/src/main.tsx` — Routing, QueryClientProvider, and ProtectedRoute
+
+### Staged Implementation Milestones
+1. **Milestone 1 — Project Scaffold & Design System:**
+   - Scaffold `frontend/` directory with Vite, TypeScript, dependencies, dev proxy to backend.
+   - Setup `index.html` with fonts and `src/index.css` containing complete TaskTrackr design system tokens.
+   - Proposed Commit 1: `feat(frontend): scaffold TypeScript Vite app with TaskTrackr design tokens`
+2. **Milestone 2 — API Client, Interceptors & State Management:**
+   - Implement `src/lib/api.ts` with CSRF handling and silent JWT refresh on 401.
+   - Implement `src/store/authStore.ts` with Zustand.
+   - Setup TanStack Query `QueryClientProvider` and TypeScript types.
+   - Proposed Commit 2: `feat(frontend): add API client with CSRF and JWT refresh, auth store, and types`
+3. **Milestone 3 — Auth Flow Screens:**
+   - Implement `/register` with validation.
+   - Implement `/verify-otp` with 6-digit auto-advancing grid, paste handling, and 45s resend timer.
+   - Implement `/login` with inline alert banner and unverified redirect.
+   - Proposed Commit 3: `feat(frontend): implement registration, OTP verification, and login pages`
+4. **Milestone 4 — Daily Tasks Workspace & Components:**
+   - Implement `/tasks` workspace: header with edition date, pacing/progress wave indicator, quick-add form, filter/search toolbar, task cards with circular checkboxes, edit/delete actions, completed archive, pagination, empty states, and toast notifications.
+   - Protected route wrapper and 404 page.
+   - Proposed Commit 4: `feat(frontend): implement tasks workspace, progress widget, filters, and protected routing`
+### Implementation Status & Verification Results
+- **Status:** Complete — All milestones implemented and verified.
+- **Scaffold & Build:** Created `/frontend` with Vite, React 18, and strict TypeScript (`tsconfig.json`).
+- **Design System:** Implemented full TaskTrackr tranquil design system in `frontend/src/index.css` per `plan-ui.md`:
+  - Warm cream background base (`#FAF6EE` / `#FFF8F4`).
+  - Warm Charcoal typography (`#2B2620`) and Muted Warm Gray (`#8A8173`).
+  - Accent palette: Muted Terracotta (`#B8643C`) and Soft Sage (`#7D8F6B`).
+  - Google Fonts: *Newsreader* serif headlines + *Plus Jakarta Sans* UI sans-serif.
+- **Networking & Security:**
+  - Implemented `src/lib/api.ts` with Axios, automatic CSRF token fetching (`/csrf-token`), and `CSRF-Token` headers on state-changing requests.
+  - Silent token refresh interceptor automatically rotating expired access tokens via `/auth/refresh` upon 401 responses.
+- **State Management:**
+  - TanStack Query v5 configured for server-state caching, invalidation, and optimistic updates.
+  - Zustand stores for auth session (`useAuthStore`) and tranquil floating toasts (`useUiStore`).
+- **Screens Implemented:**
+  - `/register` — Single-column layout (440px), validation, min 8 char password with show/hide eye toggle, reassurance copy.
+  - `/verify-otp` — 6-digit auto-advancing grid, backspace retreat, clipboard paste splitter, 10-minute expiry notice, 45-second resend countdown.
+  - `/login` — Editorial title, show/hide password, terracotta inline banner with deep link to OTP verification for unverified accounts.
+  - `/tasks` — 680px column, edition header (`JOURNAL • [DAY] EDITION`), persistent quick-add form (title, notes, tags, priority), pacing & progress wave widget, active task cards with circular checkboxes, completed task archive, search & filter toolbar, edit & delete modals.
+  - `*` — Tranquil 404 fallback page (`NotFoundPage`).
+- **Build Verification:**
+  - `npm run build` executed cleanly (`tsc && vite build`), generating optimized production bundle in `frontend/dist/` with zero TypeScript errors.
+  - Vite dev server tested and serving on `http://localhost:5173/`.
+
+

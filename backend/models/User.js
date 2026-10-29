@@ -91,7 +91,9 @@ UserSchema.methods.sendVerificationEmail = async function () {
   const emailService = require("../utils/emailService");
   const otp = this.generateVerificationCode();
   await this.save(); // Save the OTP to database
-  await emailService.sendVerificationEmail(this.email, this.name, otp);
+  console.log("Verification email sent to:", this.email);
+  console.log("OTP:", otp);
+  // await emailService.sendVerificationEmail(this.email, this.name, otp);
   return otp;
 };
 

@@ -35,8 +35,7 @@ exports.registerController = async (req, res, next) => {
 
       // Send verification email
       try {
-        // await newUser.sendVerificationEmail();
-        console.log("Verification email sent to:", newUser.email);
+        await newUser.sendVerificationEmail();
       } catch (emailError) {
         console.error("Email verification sending failed:", emailError);
         // Don't fail registration if email fails, user can resend later
