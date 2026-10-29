@@ -173,3 +173,22 @@ The current frontend is built with Create React App (JavaScript) and uses:
   - Joi smoke: create with status/priority/tags accepted; legacy `completed` rejected; toggle `{ status }` accepted; query `status` + sort `-priority` accepted.
   - `frontend` `npm run build` (`tsc && vite build`) — pass, zero TS errors.
 
+---
+
+## 2026-10-30 — Task 9: Fix browser reload auth error & Vite proxy collision
+
+- Branch: `fix/auth-reload-access-token`
+- Goal: Fix raw 401 error (`{"success":false,"message":"Authentication required: access token missing"}`) when refreshing the browser while logged in at `/tasks`.
+- Findings & Root Cause:
+  - **Vite Proxy Collision:** The frontend route (`/tasks`) and Express backend route (`/tasks`) shared the identical path prefix. When reloading the browser at `http://localhost:5173/tasks`, the browser sent an HTML navigation GET request (`Accept: text/html`). Vite's dev proxy forwarded the browser navigation request directly to Express (`GET /tasks`), which failed authentication due to the lack of an `Authorization: Bearer` header on top-level browser navigations, returning raw 401 JSON to the screen.
+  - **Volatile In-Memory Access Token:** `useAuthStore` persisted only `refreshToken` and user metadata in `localStorage`, leaving `accessToken` purely in Zustand memory. On page reload, the in-memory access token was wiped, creating a race condition where `<TasksPage />` fired queries before tokens were silently renewed.
+- Changes:
+  - `frontend/vite.config.ts`: Added `bypassHtml` proxy check to `/tasks`, `/auth`, and `/verify` so requests accepting `text/html` serve `/index.html` via Vite's SPA fallback instead of forwarding to the backend API.
+  - `frontend/src/store/authStore.ts`: Persisted `accessToken` under `tasktrackr_access_token` in `localStorage` on `login` and `setAccessToken`; restored `accessToken` and initialized `isAuthenticated: true` on `initialize()`; removed on `logout()`.
+  - Docs: `tasks/task9.md`, this log.
+- Verification:
+  - `npm run build` (`tsc && vite build`) passed cleanly with zero TypeScript errors.
+  - Tested Vite dev server with `curl -i -H "Accept: text/html" http://localhost:5173/tasks` — returned `200 OK` serving `index.html`.
+  - Tested JSON API requests via `curl -i -H "Accept: application/json" http://localhost:5173/tasks` — confirmed proper forwarding to the backend proxy target.
+
+
