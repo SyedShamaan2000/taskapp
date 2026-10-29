@@ -14,6 +14,7 @@ interface AuthState {
   initialize: () => void;
 }
 
+const ACCESS_TOKEN_KEY = 'tasktrackr_access_token';
 const REFRESH_TOKEN_KEY = 'tasktrackr_refresh_token';
 const USER_KEY = 'tasktrackr_user_meta';
 
@@ -25,6 +26,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   isInitialized: false,
 
   login: (payload: LoginResponse) => {
+    localStorage.setItem(ACCESS_TOKEN_KEY, payload.accessToken);
     localStorage.setItem(REFRESH_TOKEN_KEY, payload.refreshToken);
     localStorage.setItem(USER_KEY, JSON.stringify(payload.user));
     set({
@@ -37,10 +39,12 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   },
 
   setAccessToken: (token: string) => {
+    localStorage.setItem(ACCESS_TOKEN_KEY, token);
     set({ accessToken: token, isAuthenticated: true });
   },
 
   logout: () => {
+    localStorage.removeItem(ACCESS_TOKEN_KEY);
     localStorage.removeItem(REFRESH_TOKEN_KEY);
     localStorage.removeItem(USER_KEY);
     set({
@@ -62,6 +66,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   },
 
   initialize: () => {
+    const savedAccessToken = localStorage.getItem(ACCESS_TOKEN_KEY);
     const savedRefreshToken = localStorage.getItem(REFRESH_TOKEN_KEY);
     const savedUser = localStorage.getItem(USER_KEY);
 
@@ -76,13 +81,15 @@ export const useAuthStore = create<AuthState>((set, get) => ({
 
     if (savedRefreshToken) {
       set({
+        accessToken: savedAccessToken || null,
         refreshToken: savedRefreshToken,
         user: parsedUser,
-        isAuthenticated: false, // will become true upon first silent refresh
+        isAuthenticated: !!savedAccessToken,
         isInitialized: true,
       });
     } else {
       set({
+        accessToken: null,
         refreshToken: null,
         user: null,
         isAuthenticated: false,
