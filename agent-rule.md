@@ -9,6 +9,7 @@ description: Core operating rules for the local coding agent
 - **No Direct Changes to `main`:** No changes should be directly made to the `main` branch. Always create a new branch first before making any changes.
 - Never run `git` commands (commit, push, merge, rebase, reset --hard, checkout on shared branches, etc.) without explicit user confirmation for that specific action.
 - Do not auto-commit or auto-push as a side effect of a task. Propose the commit message and wait for a go-ahead.
+- **Small, incremental commits:** Don't pile up a large batch of unrelated changes and push them all at once. After each logical unit of work, propose a focused commit so history stays readable and reviewable.
 - Destructive git operations (force push, hard reset, branch deletion) require an explicit, separate confirmation — don't bundle them into a "yes" for something else.
 
 ## 2. Coding Best Practices
@@ -50,4 +51,4 @@ Every project should have a clean, conventional structure, including:
   - **Scope** — what's explicitly in/out of scope.
   - **Notes** — any decisions, trade-offs, or follow-ups.
 - Task files are written _before_ or alongside the implementation, not as an afterthought.
-- **Keep `development.md` Updated:** Continuously update and append to `development.md` as development progresses, logging branch information, goals, changes made, files modified, and verification results.
+- **Keep `development.md` Updated:** Continuously update and append to `development.md` as development progresses, logging branch information, goals, what was changed/modified, files touched, and verification results — so there is an ongoing track of project progress.
