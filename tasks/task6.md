@@ -17,6 +17,11 @@ After Task 4 (rich Task schema) and Task 5 (new frontend), users can register, v
 - **Out of scope:** Strong passwords (Task 8); full structured error redesign (Task 7) beyond whatever is needed to debug create; new task features (subtasks, drag-and-drop).
 
 ## Notes
-- Likely immediate failure mode today: Joi rejects unknown `priority` / `tags` → 400 `"Invalid request data"`.
-- Open decision: keep API `completed` boolean (synced with `status`) vs status-only. Confirm before coding.
-- Do not implement until this plan is confirmed; work on a feature branch off `main`, not on `main`.
+- **Decision (confirmed):** Status-only API — drop `completed` boolean; FE + BE use `status: 'pending' | 'in-progress' | 'completed'`.
+- Branch: `fix/align-task-api`
+- Likely immediate failure mode before fix: Joi rejects unknown `priority` / `tags` → 400 `"Invalid request data"`.
+- Files changed:
+  - `backend/utils/validators.js` — task create/update/query schemas aligned to model enums.
+  - `backend/routes/taskRoutes.js` — create persists status/priority/tags/dueDate; list filters on `status`.
+  - `frontend/src/types/index.ts` — removed `completed` from Task / create / update / filters.
+  - `frontend/src/pages/TasksPage.tsx` — create/toggle use `status` only.

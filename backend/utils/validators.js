@@ -29,29 +29,44 @@ const resendVerificationSchema = Joi.object({
   email,
 });
 
+// Shared enums matching backend/models/Task.js (status-only; no completed boolean).
+const taskStatus = Joi.string().valid("pending", "in-progress", "completed");
+const taskPriority = Joi.string().valid("low", "medium", "high", "urgent");
+const taskTags = Joi.array()
+  .items(Joi.string().trim().min(1).max(40))
+  .max(20);
+const taskDueDate = Joi.date().iso().allow(null);
+
 const taskSchema = Joi.object({
   title: Joi.string().trim().min(1).max(200).required(),
   description: Joi.string().trim().min(1).max(5000).required(),
-  completed: Joi.boolean(),
-  userId: Joi.string().pattern(/^[0-9a-fA-F]{24}$/),
-});
+  status: taskStatus.default("pending"),
+  priority: taskPriority.default("medium"),
+  dueDate: taskDueDate,
+  tags: taskTags.default([]),
+}).unknown(false);
 
 const taskUpdateSchema = Joi.object({
   title: Joi.string().trim().min(1).max(200),
   description: Joi.string().trim().min(1).max(5000),
-  completed: Joi.boolean(),
+  status: taskStatus,
+  priority: taskPriority,
+  dueDate: taskDueDate,
+  tags: taskTags,
 })
   .min(1)
   .unknown(false);
+
+const SORT_FIELDS = "createdAt|updatedAt|title|status|priority|dueDate";
 
 const taskQuerySchema = Joi.object({
   page: Joi.number().integer().min(1).default(1),
   limit: Joi.number().integer().min(1).max(100).default(10),
   sort: Joi.string()
-    .pattern(/^-?(createdAt|title|completed)(,-?(createdAt|title|completed))*$/)
+    .pattern(new RegExp(`^-?(${SORT_FIELDS})(,-?(${SORT_FIELDS}))*$`))
     .default("-createdAt"),
-  completed: Joi.boolean().truthy("1").falsy("0"),
-  priority: Joi.string().trim().max(20),
+  status: taskStatus,
+  priority: taskPriority,
   search: Joi.string().trim().max(100),
 });
 

@@ -68,13 +68,13 @@ export const TasksPage: React.FC = () => {
   const tasks = data?.tasks || [];
   const pagination = data?.pagination;
 
-  // Split active and completed tasks
+  // Split active vs completed using status only (no completed boolean).
   const activeTasks = useMemo(
-    () => tasks.filter((t) => !t.completed && t.status !== 'completed'),
+    () => tasks.filter((t) => t.status !== 'completed'),
     [tasks]
   );
   const completedTasks = useMemo(
-    () => tasks.filter((t) => t.completed || t.status === 'completed'),
+    () => tasks.filter((t) => t.status === 'completed'),
     [tasks]
   );
 
@@ -101,16 +101,13 @@ export const TasksPage: React.FC = () => {
     },
   });
 
-  // Toggle Completion Mutation
+  // Toggle completion via status field only.
   const toggleTaskMutation = useMutation({
-    mutationFn: async ({ id, completed }: { id: string; completed: boolean }) => {
-      const res = await apiClient.put(`/tasks/${id}`, {
-        completed,
-        status: completed ? 'completed' : 'pending',
-      });
+    mutationFn: async ({ id, status }: { id: string; status: Task['status'] }) => {
+      const res = await apiClient.put(`/tasks/${id}`, { status });
       return res.data;
     },
-    onMutate: async ({ id, completed }) => {
+    onMutate: async ({ id, status }) => {
       await queryClient.cancelQueries({ queryKey: ['tasks'] });
       const previousData = queryClient.getQueryData<TasksResponse>(['tasks', page, limit, searchTerm, selectedPriority]);
 
@@ -118,9 +115,7 @@ export const TasksPage: React.FC = () => {
         queryClient.setQueryData<TasksResponse>(['tasks', page, limit, searchTerm, selectedPriority], {
           ...previousData,
           tasks: previousData.tasks.map((task) =>
-            task._id === id
-              ? { ...task, completed, status: completed ? 'completed' : 'pending' }
-              : task
+            task._id === id ? { ...task, status } : task
           ),
         });
       }
@@ -176,9 +171,9 @@ export const TasksPage: React.FC = () => {
     createTaskMutation.mutate({
       title: newTitle.trim(),
       description: newDescription.trim() || 'No additional notes',
+      status: 'pending',
       priority: newPriority,
       tags: newTags,
-      completed: false,
     });
   };
 
@@ -599,7 +594,9 @@ export const TasksPage: React.FC = () => {
                   <div style={{ paddingTop: '2px' }}>
                     <Checkbox
                       checked={false}
-                      onChange={() => toggleTaskMutation.mutate({ id: task._id, completed: true })}
+                      onChange={() =>
+                        toggleTaskMutation.mutate({ id: task._id, status: 'completed' })
+                      }
                       aria-label={`Mark "${task.title}" as completed`}
                     />
                   </div>
@@ -725,7 +722,9 @@ export const TasksPage: React.FC = () => {
                   <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flex: 1 }}>
                     <Checkbox
                       checked={true}
-                      onChange={() => toggleTaskMutation.mutate({ id: task._id, completed: false })}
+                      onChange={() =>
+                        toggleTaskMutation.mutate({ id: task._id, status: 'pending' })
+                      }
                       aria-label={`Unmark "${task.title}"`}
                     />
                     <span
