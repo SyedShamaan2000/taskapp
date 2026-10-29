@@ -147,7 +147,7 @@ The current frontend is built with Create React App (JavaScript) and uses:
 - **Changes:**
   - Updated local `~/.cursor/rules/agent-operating.mdc`: small/focused commits; append `development.md` with what changed/modified.
   - Updated `agent-rule.md` with the same guidance.
-  - Added project `.cursor/rules/agent-operating.mdc` (`alwaysApply: true`).
   - Added `tasks/task6.md`.
-- **Files modified/created:** `agent-rule.md`, `.cursor/rules/agent-operating.mdc`, `tasks/task6.md`, `development.md` (local rule outside repo).
+  - Removed committed `.cursor/rules/` from the repo (local-only); added `.cursor/` to `.gitignore`.
+- **Files modified/created:** `agent-rule.md`, `tasks/task6.md`, `development.md`, `.gitignore` (local rule remains at `~/.cursor/rules/agent-operating.mdc`).
 - **Verification:** Content review of rule wording; no app code changes.
