@@ -1,346 +1,168 @@
 # TaskApp Engineering Improvements
 
-## Overview
-This document lists improvements needed for the TaskApp from an engineering perspective. The app is a basic task management application with user authentication, task CRUD operations, and email verification, but lacks several critical features for production use.
+Living backlog for TaskTrackr. Prefer fixing broken core flows before polishing.
+
+**Status key:** `done` · `broken` · `partial` · `todo`
 
 ---
 
-## 1. Authentication & Session Management
+## What’s already done (Tasks 1–5)
 
-### Current State
-- User login/register with localStorage storage of user ID
-- No JWT tokens implemented
-- Session management relies solely on localStorage
-
-### Improvements Needed
-- **Implement JWT-based authentication** with access and refresh tokens
-- **Add token expiration and refresh mechanism**
-- **Add "remember me" functionality**
-- **Implement proper session invalidation on logout**
-- **Add authentication middleware** for protected routes
-- **Store user context in Redux/Context API** instead of localStorage
-
-### Current Code Issues
-```javascript
-// Frontend - Login stores user in localStorage
-localStorage.setItem('userId', JSON.stringify(data.user));
-// No token management, no session expiry
-```
+| Area | Status | Notes |
+|------|--------|-------|
+| JWT access + refresh auth | `done` | Backend middleware + frontend Zustand + silent refresh |
+| REST task list (`GET /tasks`) | `done` | Pagination / sort / filter query params exist |
+| Security: rate limit, CSRF, sanitize, Helmet CSP, Joi | `done` | Validation messages still too generic (see below) |
+| Task model: status, priority, dueDate, tags, timestamps | `done` | Model updated; **routes/validators not fully aligned** |
+| Frontend rebuild (Vite + TS + TanStack Query + TaskTrackr UI) | `done` | Auth flow works; **task create/update broken against API** |
 
 ---
 
-## 2. API Design & RESTful Conventions
+## Priority 0 — Broken: cannot create tasks
 
-### Current State
-- Mixed HTTP methods (`POST /tasks/fetch` to get tasks, `PUT` for create)
-- No pagination or filtering
-- Basic CRUD only
+**User report:** Register → verify → login works; creating a task fails.
 
-### Improvements Needed
-- **Use proper REST endpoints**: `GET /tasks`, `POST /tasks`, `PUT /tasks/:id`, `DELETE /tasks/:id`
-- **Replace `POST /tasks/fetch` with `GET /tasks`**
-- **Add query parameters** for pagination (`?page=1&limit=10`), sorting, and filtering
-- **Implement task search** by title/description
-- **Add task filtering** by status (completed/pending), priority, due date
+### Root cause (confirmed by code review)
 
-### Current Code Issues
-```javascript
-// Backend - Uses POST for fetching tasks
-router.post("/fetch", async (req, res) => { ... });
-// Uses PUT for creating tasks  
-router.post("/", async (req, res) => { ... });
-```
+After Task 4 (data modeling), the **Task mongoose schema** uses `status`, `priority`, `dueDate`, `tags` and **no longer has `completed`**. The **frontend** (Task 5) correctly sends the new shape. The **task routes + Joi schemas** still assume the old shape.
 
----
+| Layer | What it does today | Problem |
+|-------|--------------------|---------|
+| Frontend `CreateTaskInput` / `TasksPage` | `POST /tasks` with `{ title, description, priority, tags, completed }` | Sends fields Joi does not allow |
+| `backend/utils/validators.js` → `taskSchema` | Only allows `title`, `description`, `completed?`, `userId?` | Unknown keys (`priority`, `tags`, …) fail validation → **400 `"Invalid request data"`** |
+| `POST /tasks` handler | Creates with `{ title, description, completed, userId }` | Ignores `priority` / `tags` / `status`; writes obsolete `completed` |
+| Task model | `status`, `priority`, `dueDate`, `tags` (no `completed`) | Drift vs routes + list filters |
+| `taskUpdateSchema` | Only `title`, `description`, `completed` + `.unknown(false)` | Toggle/edit sending `status` / `priority` also fails |
+| `GET /tasks` filter | `filter.completed = …` | Field does not exist on model; completed filter is ineffective |
+| Query `sort` allowlist | `createdAt\|title\|completed` | Cannot sort by `priority`, `status`, `dueDate` |
 
-## 3. Security Enhancements
+### Fix scope (when implementing)
 
-### Current State
-- Argon2 password hashing (good!)
-- Helmet middleware for security headers
-- CORS configured but with hardcoded origins
-- No rate limiting
-- No CSRF protection
+1. Align Joi `taskSchema` / `taskUpdateSchema` / `taskQuerySchema` with the Task model (`status`, `priority`, `dueDate`, `tags`; decide whether to keep a derived `completed` for API convenience or drop it).
+2. Update `POST /tasks` and `PUT /tasks/:id` to persist the new fields from validated body.
+3. Map list filters: prefer `status` (and optionally derive `completed === status === 'completed'` if the UI keeps a boolean).
+4. Expand sort allowlist to match real fields.
+5. Ensure frontend payloads match the final API contract (one source of truth in shared types / docs).
+6. Manual verify: create → list → toggle complete → edit → delete.
 
-### Improvements Needed
-- **Add rate limiting** to prevent brute force attacks
-- **Implement CSRF protection** for state-changing operations
-- **Sanitize all user inputs** properly
-- **Add Content Security Policy** headers
-- **Hide error details** from clients (show generic messages only)
-- **Add input validation** using schemas (Joi/Zod)
-- **Implement proper CORS** with environment-based origins
-
-### Current Code Issues
-```javascript
-// Backend - CORS with hardcoded origins
-app.use(cors({
-    origin: ['https://taskapp-khaki.vercel.app', allowedOrigin]
-}));
-```
+**Suggested next task file:** `tasks/task6.md` — “Align task API with data model + fix create/update”.
 
 ---
 
-## 4. Database & Data Modeling
+## Priority 1 — Error handling (backend + frontend)
 
-### Current State
-- Basic Task schema: title, description, completed, userId
-- User schema with name, email, password, tasks array, isVerified
-- No due dates, priorities, or categories
+**Status:** `partial` — errors exist, but users often see opaque messages and field-level guidance is missing.
 
-### Improvements Needed
-- **Add `createdAt` and `updatedAt` timestamps** to Task model
-- **Add due dates** to tasks
-- **Add priority levels** (low, medium, high, urgent)
-- **Add task categories/labels** (work, personal, urgent, etc.)
-- **Add task status** beyond just completed/pending
-- **Add user metadata**: lastLogin, online status
-- **Add indexes** for frequently queried fields
+### Backend gaps
 
-### Current Code Issues
-```javascript
-// Task model - Missing timestamps and metadata
-const TaskSchema = new mongoose.Schema({
-    title: { type: String, required: true },
-    description: { type: String, required: true },
-    completed: { type: Boolean, default: false },
-    userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User' }
-});
-```
+| Issue | Current behavior | Desired |
+|-------|------------------|---------|
+| Joi `validate` middleware | Always returns `"Invalid request data"` with **no field details** | Return structured `errors: [{ field, message }]` (safe, client-facing). Keep internal logs separate. |
+| Controllers | Mix of specific messages and generic 500s | Consistent `{ success, message, errors? }` shape everywhere |
+| Auth / verification | Mostly good specific messages | Keep; ensure frontend maps them |
+| Task routes | Generic 500 `"Internal server error"` | Same envelope; log real cause server-side |
+| Password / validation failures | Opaque or mismatched vs UI rules | Field-level messages that match strong-password rules |
 
----
+### Frontend gaps
 
-## 5. Email Verification System
+| Issue | Current behavior | Desired |
+|-------|------------------|---------|
+| `getApiErrorMessage` | Reads only top-level `message` / `error` | Also surface `errors[]` (join or per-field) |
+| Auth pages | Inline banners + toast | Map API field errors onto inputs where possible |
+| Tasks page | Toast on mutation failure | Same; for create, show why (e.g. validation) not a vague string |
+| Network / CSRF / 429 | Partially handled | Clear copy for offline, CSRF retry failure, rate limit |
+| Error boundary | Mentioned in task5 scope | Confirm present for render crashes |
 
-### Current State
-- OTP generation and verification implemented
-- Email sending via nodemailer with SMTP config
-- Resend verification endpoint exists
+### Fix scope (when implementing)
 
-### Improvements Needed
-- **Add email verification status check** in frontend
-- **Add "Send verification email" button** for unverified users
-- **Implement email change flow** with re-verification
-- **Add email validation** on registration
-- **Add verification expiry handling** with auto-expire
-- **Add preview mode** for development without SMTP
+1. Extend validation middleware to return field-level Joi messages.
+2. Standardize API error JSON contract.
+3. Upgrade `getApiErrorMessage` (+ optional `getApiFieldErrors`).
+4. Wire field errors into Register / Login / task form.
+5. Smoke-test failure paths: bad OTP, weak password, invalid task body, expired token, CSRF miss.
 
-### Current Code Issues
-```javascript
-// Frontend - No verification status check
-useEffect(() => {
-    if(localStorage.getItem('userId')) {
-        // No check for isVerified status
-    }
-});
-```
+**Suggested task file:** `tasks/task7.md` — “Structured API errors + FE surfacing”.
 
 ---
 
-## 6. Frontend Enhancements
+## Priority 1 — Strong password policy
 
-### Current State
-- React app with basic pages (Login, Register, Home)
-- Task form and list components
-- Uses localStorage for auth state
-- window.location.reload() everywhere
+**Status:** `todo` / inconsistent today.
 
-### Improvements Needed
-- **Replace window.location.reload()** with state management
-- **Add proper routing protection** with 404 fallback
-- **Add responsive design** for mobile devices
-- **Add dark mode support**
-- **Implement form validation** with error messages
-- **Add loading states** for individual tasks
-- **Add error boundaries** for graceful error handling
-- **Use TypeScript** instead of JavaScript
-- **Add unit tests** for components
+| Layer | Current rule |
+|-------|----------------|
+| Frontend register | Min **8** characters only |
+| Backend Joi `password` | Min **6**, max 128 — **no complexity** |
+| UX | No strength meter / requirement checklist |
 
-### Current Code Issues
-```javascript
-// Frontend - Reloads page after every operation
-window.location.reload(); // Used in 5+ places
-// No state management, causes full page refresh
-```
+### Proposed policy (confirm before coding)
+
+- Minimum **8** characters (align FE + BE; raise BE from 6 → 8).
+- At least one **uppercase**, one **lowercase**, one **digit**.
+- At least one **special** character from a defined set (e.g. `!@#$%^&*()_+-=[]{}|;:',.<>/?`).
+- Max length **128** (already).
+- Reject common passwords optionally later (not required for first pass).
+- Same rules applied on: register (and future password-change / reset if added).
+- Clear user-facing messages: e.g. “Password must be at least 8 characters and include upper, lower, number, and a symbol.”
+- Optional UX: live checklist under the password field (does not replace server validation).
+
+**Suggested task file:** `tasks/task8.md` — “Strong password validation (FE + BE)”.
 
 ---
 
-## 7. Task Features
+## Priority 2 — Remaining product / engineering gaps
 
-### Current State
-- Basic CRUD operations
-- Toggle complete/incomplete
-- Edit title and description
-- Delete tasks
+Carry-forward items that are still useful after P0/P1. Do not block task create or error/password work.
 
-### Improvements Needed
-- **Add due dates** with overdue indication
-- **Add task priority** levels
-- **Add task categories/tags**
-- **Add search/filter** functionality
-- **Add bulk operations** (select multiple tasks)
-- **Add subtasks** within tasks
-- **Add task comments/activity log**
-- **Add drag-and-drop** reordering
+### API & domain
 
-### Current Code Issues
-```javascript
-// TaskItem - Only tracks completed status
-const [editMode, setEditMode] = useState(false);
-// No due date, priority, or category fields
-```
+- [ ] Document final task API contract (OpenAPI or short markdown) after P0 alignment.
+- [ ] Health check endpoint (`GET /health`) for deploys.
+- [ ] Decide fate of `User.tasks[]` array vs querying by `userId` only (dual write is fragile).
 
----
+### Auth & account
 
-## 8. User Experience
+- [ ] Forgot-password / reset flow (UI link exists on login; backend may be missing).
+- [ ] Email change with re-verification.
+- [ ] OTP expiry UX already partially done; harden server-side expiry messages.
 
-### Current State
-- Simple toast notifications
-- Basic button interactions
-- Simple form layouts
+### Frontend UX
 
-### Improvements Needed
-- **Add global error handling** interceptor
-- **Implement skeleton loaders** instead of "Loading..." text
-- **Add empty states** with helpful messages
-- **Add confirmation dialogs** for destructive actions
-- **Add undo/redo** for task operations
-- **Add tooltips** and micro-interactions
-- **Add print-friendly** task views
-- **Add keyboard shortcuts** power user features
+- [ ] Confirm ErrorBoundary coverage.
+- [ ] Reduce remaining design debt only after core flows are solid.
+- [ ] Accessibility pass (ARIA, focus, contrast) as a dedicated pass.
 
-### Current Code Issues
-```javascript
-// Frontend - Basic toast notifications
-toast.error(`Error: ${error.message}`);
-// No skeleton loaders, just text "Loading tasks..."
-```
+### Quality & ops
+
+- [ ] Backend unit/integration tests for task create/update validators and routes.
+- [ ] Frontend tests for auth forms + create-task mutation error paths.
+- [ ] CI already has some frontend check; extend for backend tests.
+- [ ] Docker / env validation at startup (as needed for deploy).
+
+### Security (post-P0)
+
+- [ ] Ensure production CSRF secret and `ALLOWED_ORIGINS` are documented in `.env.example`.
+- [ ] Hide stack traces always (already mostly true); never leak Joi internals beyond field messages.
 
 ---
 
-## 9. Testing & Quality Assurance
+## Recommended implementation order
 
-### Current State
-- No visible test files
-- Manual testing only
+1. **Task 6 — Fix task create/update/list alignment** (unblocks the app).
+2. **Task 7 — Structured errors FE + BE** (so failures are diagnosable and user-friendly).
+3. **Task 8 — Strong passwords** (security + consistent FE/BE rules).
+4. Then pick from Priority 2 as needed.
 
-### Improvements Needed
-- **Add unit tests** for backend controllers and routes
-- **Add integration tests** for API endpoints
-- **Add frontend component tests** with React Testing Library
-- **Add E2E tests** with Cypress or Playwright
-- **Set up CI/CD pipeline** with test runs
-- **Add code coverage reports**
-- **Implement linting** and format checking
-- **Add TypeScript type checking**
-
-### Current Code Issues
-```javascript
-// No test scripts configured beyond basic react-scripts test
-// No test infrastructure for custom backend logic
-```
+Do **not** start coding these until the corresponding task file is written and the approach is confirmed (especially password policy).
 
 ---
 
-## 10. Deployment & DevOps
+## Open questions (answer before Task 8; Task 6 can proceed with a decision on `completed`)
 
-### Current State
-- Frontend on Vercel (implied)
-- Backend likely on any Node.js hosting
-- Environment variables in .env
-
-### Improvements Needed
-- **Add Docker configuration** for both frontend and backend
-- **Set up CI/CD pipeline** (GitHub Actions, GitLab CI)
-- **Add health check endpoint** for backend
-- **Configure domain** with SSL/TLS
-- **Add monitoring** and error tracking (Sentry, etc.)
-- **Set up log aggregation**
-- **Add environment validation** at startup
-- **Configure backup** strategy for MongoDB
-
-### Current Code Issues
-```javascript
-// Backend - No health check endpoint
-app.get('/', (req, res) => {
-    res.send('Welcome to Task Management App');
-});
-// No /health endpoint for deployment monitoring
-```
+1. **`completed` vs `status`:** Keep a boolean `completed` in the API (derived from / synced with `status`), or remove `completed` entirely and use only `status` in FE + BE?
+2. **Password policy:** OK with the proposed 8+ / upper / lower / digit / special rules, or different requirements (e.g. length-only 12+, or NIST-style “long passphrase, no complexity”)?
+3. **Error detail level:** Return all Joi field messages to the client, or a single summary message plus optional `errors` array?
 
 ---
 
-## 11. Code Organization & Maintainability
-
-### Current State
-- Flat file structure
-- Mixed concerns
-- Hardcoded URLs
-
-### Improvements Needed
-- **Reorganize folder structure** by feature/domain
-- **Extract API constants** to separate config file
-- **Add proper error classes** for consistent error handling
-- **Implement middleware** for common patterns
-- **Add configuration environment** separation (dev/prod)
-- **Add documentation** for API endpoints
-- **Extract utils** to separate modules
-- **Add index files** for cleaner imports
-
-### Current Code Issues
-```javascript
-// Frontend - Hardcoded API host
-export const host = 'https://taskapp-backend.vercel.app';
-// Different URLs for local dev vs production
-```
-
----
-
-## 12. Accessibility (a11y)
-
-### Current State
-- Basic HTML structure
-- Some color contrast in CSS
-
-### Improvements Needed
-- **Add proper ARIA labels** for form inputs
-- **Ensure keyboard navigation** works fully
-- **Add focus styles** for interactive elements
-- **Ensure screen reader compatibility**
-- **Meet WCAG 2.1 AA** contrast ratios
-- **Add skip links** for navigation
-- **Test with** axe or similar tools
-
-### Current Code Issues
-```html
-<!-- No ARIA labels on form inputs -->
-<input type="text" placeholder="Title" .../>
-// No visible focus indicators in some states
-```
-
----
-
-## Summary
-
-The TaskApp has a solid foundation with basic authentication, task management, and email verification. However, for production use, the following priorities are recommended:
-
-### High Priority
-1. Implement proper JWT authentication with refresh tokens
-2. Fix API design to follow RESTful conventions
-3. Add rate limiting and security headers
-4. Improve frontend state management (remove window.location.reload())
-
-### Medium Priority
-5. Add due dates, priorities, and categories to tasks
-6. Complete email verification flow in frontend
-7. Add proper error handling and loading states
-8. Implement responsive design and accessibility
-
-### Low Priority
-9. Add advanced features (subtasks, comments, drag-and-drop)
-10. Implement testing suite and CI/CD
-11. Add dark mode and additional UX improvements
-12. Full DevOps pipeline and monitoring
-
----
-*Generated from engineering code review of the TaskApp repository*
+*Updated 2026-10-30 after auth-success / task-create-failure report and code review of model vs validators vs frontend payloads.*
