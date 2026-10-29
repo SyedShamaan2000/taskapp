@@ -1,5 +1,6 @@
 /**
  * TaskTrackr — TypeScript Domain & API Definitions
+ * Task API is status-only (no completed boolean).
  */
 
 export type TaskStatus = 'pending' | 'in-progress' | 'completed';
@@ -22,7 +23,6 @@ export interface Task {
   description: string;
   status: TaskStatus;
   priority: TaskPriority;
-  completed?: boolean;
   dueDate?: string | null;
   tags: string[];
   userId: string;
@@ -41,7 +41,7 @@ export interface TaskFilters {
   page?: number;
   limit?: number;
   sort?: string;
-  completed?: boolean;
+  status?: TaskStatus;
   priority?: TaskPriority | '';
   search?: string;
 }
@@ -49,7 +49,6 @@ export interface TaskFilters {
 export interface CreateTaskInput {
   title: string;
   description: string;
-  completed?: boolean;
   status?: TaskStatus;
   priority?: TaskPriority;
   dueDate?: string;
@@ -59,10 +58,9 @@ export interface CreateTaskInput {
 export interface UpdateTaskInput {
   title?: string;
   description?: string;
-  completed?: boolean;
   status?: TaskStatus;
   priority?: TaskPriority;
-  dueDate?: string;
+  dueDate?: string | null;
   tags?: string[];
 }
 

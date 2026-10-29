@@ -20,10 +20,10 @@ router.use(requireVerifiedUserAndAuthenticated);
 router.get("/", validate(taskQuerySchema, "query"), async (req, res) => {
   try {
     const userId = req.user._id;
-    const { page, limit, sort, completed, priority, search } =
-      req.validatedQuery;
+    const { page, limit, sort, status, priority, search } = req.validatedQuery;
     const skip = (page - 1) * limit;
 
+    // Build mongoose sort object from comma-separated ±field list.
     const sortOptions = sort.split(",").map((s) => {
       const dir = s.startsWith("-") ? -1 : 1;
       const field = s.replace(/^-/, "");
@@ -32,8 +32,8 @@ router.get("/", validate(taskQuerySchema, "query"), async (req, res) => {
     const sortObj = Object.fromEntries(sortOptions);
 
     const filter = { userId };
-    if (completed !== undefined) {
-      filter.completed = completed;
+    if (status) {
+      filter.status = status;
     }
     if (priority) {
       filter.priority = priority;
@@ -67,10 +67,11 @@ router.get("/", validate(taskQuerySchema, "query"), async (req, res) => {
   }
 });
 
-// Create a new task
+// Create a new task (status / priority / tags / dueDate aligned with Task model)
 router.post("/", validate(taskSchema, "body"), async (req, res) => {
   try {
-    const { title, description, completed } = req.body;
+    // req.body is the Joi-validated value (includes defaults for status/priority/tags).
+    const { title, description, status, priority, dueDate, tags } = req.body;
     const userId = req.user._id;
 
     const user = await User.findById(userId);
@@ -85,7 +86,10 @@ router.post("/", validate(taskSchema, "body"), async (req, res) => {
     const newTask = await Task.create({
       title,
       description,
-      completed,
+      status,
+      priority,
+      dueDate,
+      tags,
       userId,
     });
 

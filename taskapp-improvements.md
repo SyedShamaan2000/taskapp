@@ -20,6 +20,8 @@ Living backlog for TaskTrackr. Prefer fixing broken core flows before polishing.
 
 ## Priority 0 — Broken: cannot create tasks
 
+**Status (2026-10-30):** Implementing on `fix/align-task-api` — **status-only** contract confirmed (drop `completed`).
+
 **User report:** Register → verify → login works; creating a task fails.
 
 ### Root cause (confirmed by code review)
@@ -157,11 +159,11 @@ Do **not** start coding these until the corresponding task file is written and t
 
 ---
 
-## Open questions (answer before Task 8; Task 6 can proceed with a decision on `completed`)
+## Open questions
 
-1. **`completed` vs `status`:** Keep a boolean `completed` in the API (derived from / synced with `status`), or remove `completed` entirely and use only `status` in FE + BE?
-2. **Password policy:** OK with the proposed 8+ / upper / lower / digit / special rules, or different requirements (e.g. length-only 12+, or NIST-style “long passphrase, no complexity”)?
-3. **Error detail level:** Return all Joi field messages to the client, or a single summary message plus optional `errors` array?
+1. **`completed` vs `status`:** ~~Decide API shape~~ → **Resolved: status-only** (no `completed` boolean).
+2. **Password policy:** OK with the proposed 8+ / upper / lower / digit / special rules, or different requirements (e.g. length-only 12+, or NIST-style “long passphrase, no complexity”)? *(confirm before Task 8)*
+3. **Error detail level:** Return all Joi field messages to the client, or a single summary message plus optional `errors` array? *(confirm before Task 7)*
 
 ---
 

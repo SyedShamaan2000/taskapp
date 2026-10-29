@@ -155,3 +155,21 @@ The current frontend is built with Create React App (JavaScript) and uses:
   - Added `tasks/task6.md` (API/model align), `tasks/task7.md` (structured errors), `tasks/task8.md` (strong passwords).
 - Status: Documentation only — **no code fixes yet**. Awaiting confirmation on `completed` vs `status` API shape and password policy before implementation.
 
+---
+
+## 2026-10-30 — Task 6: Align task API with data model (fix create/update)
+
+- Branch: `fix/align-task-api`
+- Goal: Unblock task create/update after schema drift between Task model, Joi validators, routes, and frontend.
+- Decision: **Status-only** API — remove `completed` boolean; use `status` everywhere (pending / in-progress / completed).
+- Changes:
+  - `backend/utils/validators.js` — `taskSchema` / `taskUpdateSchema` accept `status`, `priority`, `dueDate`, `tags`; query filters/sorts use real fields (no `completed`).
+  - `backend/routes/taskRoutes.js` — `POST /tasks` persists new fields; `GET /tasks` filters by `status` + `priority`.
+  - `frontend/src/types/index.ts` — dropped `completed` from domain types.
+  - `frontend/src/pages/TasksPage.tsx` — create sends `status: 'pending'`; toggle sends `status` only; archive split uses `status === 'completed'`.
+  - Docs: `tasks/task6.md`, this log.
+- Verification:
+  - `node --check` on validators + task routes — pass.
+  - Joi smoke: create with status/priority/tags accepted; legacy `completed` rejected; toggle `{ status }` accepted; query `status` + sort `-priority` accepted.
+  - `frontend` `npm run build` (`tsc && vite build`) — pass, zero TS errors.
+
