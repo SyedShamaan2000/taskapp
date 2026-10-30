@@ -1,18 +1,18 @@
-import React from 'react';
+import React from "react"
 
 export interface SkeletonProps {
-  width?: string | number;
-  height?: string | number;
-  borderRadius?: string;
-  className?: string;
-  style?: React.CSSProperties;
+  width?: string | number
+  height?: string | number
+  borderRadius?: string
+  className?: string
+  style?: React.CSSProperties
 }
 
 export const Skeleton: React.FC<SkeletonProps> = ({
-  width = '100%',
-  height = '20px',
-  borderRadius = 'var(--radius-sm)',
-  className = '',
+  width = "100%",
+  height = "20px",
+  borderRadius = "var(--radius-sm)",
+  className = "",
   style,
 }) => {
   return (
@@ -25,5 +25,5 @@ export const Skeleton: React.FC<SkeletonProps> = ({
         ...style,
       }}
     />
-  );
-};
+  )
+}

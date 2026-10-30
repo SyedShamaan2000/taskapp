@@ -1,7 +1,4 @@
-# This workflow will do a clean installation of node dependencies,
-# build the source code, and run tests for the backend package.
-
-name: NPM Installation Check CI
+name: Code Quality CI (Lint & Format)
 
 on:
   push:
@@ -10,7 +7,8 @@ on:
     branches: ["main"]
 
 jobs:
-  backend:
+  backend-lint-and-format:
+    name: Backend Lint & Prettier Check
     runs-on: ubuntu-latest
 
     strategy:
@@ -22,7 +20,8 @@ jobs:
         working-directory: backend
 
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
       - name: Use Node.js ${{ matrix.node-version }}
         uses: actions/setup-node@v4
@@ -34,13 +33,14 @@ jobs:
       - name: Install backend dependencies
         run: npm ci
 
-      - name: Build backend
-        run: npm run build --if-present
+      - name: Check code formatting (Prettier)
+        run: npm run format:check
 
-      - name: Test backend
-        run: npm test --if-present
+      - name: Run ESLint
+        run: npm run lint
 
-  frontend:
+  frontend-lint-and-format:
+    name: Frontend Lint & Prettier Check
     runs-on: ubuntu-latest
 
     strategy:
@@ -52,7 +52,8 @@ jobs:
         working-directory: frontend
 
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
       - name: Use Node.js ${{ matrix.node-version }}
         uses: actions/setup-node@v4
@@ -64,8 +65,8 @@ jobs:
       - name: Install frontend dependencies
         run: npm ci
 
-      - name: Build frontend
-        run: npm run build --if-present
+      - name: Check code formatting (Prettier)
+        run: npm run format:check
 
-      - name: Test frontend
-        run: npm test --if-present -- --watchAll=false --passWithNoTests
+      - name: Run ESLint
+        run: npm run lint

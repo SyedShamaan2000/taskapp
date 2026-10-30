@@ -1,23 +1,23 @@
-const nodemailer = require('nodemailer');
+const nodemailer = require("nodemailer")
 
 class EmailService {
   constructor() {
     this.transporter = nodemailer.createTransport({
       host: process.env.SMTP_HOST,
       port: process.env.SMTP_PORT,
-      secure: process.env.SMTP_SECURE === 'true', // true for 465, false for other ports
+      secure: process.env.SMTP_SECURE === "true", // true for 465, false for other ports
       auth: {
         user: process.env.SMTP_USER,
-        pass: process.env.SMTP_PASS
-      }
-    });
+        pass: process.env.SMTP_PASS,
+      },
+    })
   }
 
   async sendVerificationEmail(email, name, otp) {
     const mailOptions = {
       from: process.env.EMAIL_FROM || `"${name}" <noreply@yourapp.com>`,
       to: email,
-      subject: 'Verify Your Email Address',
+      subject: "Verify Your Email Address",
       html: `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
           <h2 style="color: #333;">Verify Your Email Address</h2>
@@ -31,17 +31,17 @@ class EmailService {
           <hr style="border: none; border-top: 1px solid #eee; margin: 30px 0;">
           <p style="color: #666; font-size: 12px;">This is an automated email. Please do not reply.</p>
         </div>
-      `
-    };
+      `,
+    }
 
     try {
-      await this.transporter.sendMail(mailOptions);
-      return true;
+      await this.transporter.sendMail(mailOptions)
+      return true
     } catch (error) {
-      console.error('Email sending failed:', error);
-      return false;
+      console.error("Email sending failed:", error)
+      return false
     }
   }
 }
 
-module.exports = new EmailService();
+module.exports = new EmailService()
