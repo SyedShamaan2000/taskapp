@@ -1,90 +1,90 @@
-import React, { useState } from 'react';
-import { Link, useNavigate, useSearchParams } from 'react-router-dom';
-import apiClient, { getApiErrorMessage } from '@/lib/api';
-import { Input } from '@/components/ui/Input';
-import { Button } from '@/components/ui/Button';
-import { Card } from '@/components/ui/Card';
-import { useAuthStore } from '@/store/authStore';
-import { useUiStore } from '@/store/uiStore';
-import { LoginResponse } from '@/types';
-import { ArrowRight, AlertCircle, CheckCircle2 } from 'lucide-react';
+import React, { useState } from "react"
+import { Link, useNavigate, useSearchParams } from "react-router-dom"
+import apiClient, { getApiErrorMessage } from "@/lib/api"
+import { Input } from "@/components/ui/Input"
+import { Button } from "@/components/ui/Button"
+import { Card } from "@/components/ui/Card"
+import { useAuthStore } from "@/store/authStore"
+import { useUiStore } from "@/store/uiStore"
+import { LoginResponse } from "@/types"
+import { ArrowRight, AlertCircle, CheckCircle2 } from "lucide-react"
 
 export const LoginPage: React.FC = () => {
-  const navigate = useNavigate();
-  const [searchParams] = useSearchParams();
-  const { login } = useAuthStore();
-  const { showToast } = useUiStore();
+  const navigate = useNavigate()
+  const [searchParams] = useSearchParams()
+  const { login } = useAuthStore()
+  const { showToast } = useUiStore()
 
-  const isVerifiedFromRedirect = searchParams.get('verified') === 'true';
+  const isVerifiedFromRedirect = searchParams.get("verified") === "true"
 
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
-  const [errorMessage, setErrorMessage] = useState('');
-  const [isUnverified, setIsUnverified] = useState(false);
+  const [email, setEmail] = useState("")
+  const [password, setPassword] = useState("")
+  const [isLoading, setIsLoading] = useState(false)
+  const [errorMessage, setErrorMessage] = useState("")
+  const [isUnverified, setIsUnverified] = useState(false)
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setErrorMessage('');
-    setIsUnverified(false);
+    e.preventDefault()
+    setErrorMessage("")
+    setIsUnverified(false)
 
     if (!email.trim() || !password) {
-      setErrorMessage('Please enter both your email address and password.');
-      return;
+      setErrorMessage("Please enter both your email address and password.")
+      return
     }
 
-    setIsLoading(true);
+    setIsLoading(true)
     try {
-      const response = await apiClient.post<LoginResponse>('/auth/login', {
+      const response = await apiClient.post<LoginResponse>("/auth/login", {
         email: email.trim(),
         password,
-      });
+      })
 
-      login(response.data);
-      showToast(response.data.message || `Welcome back, ${response.data.user.name}`, 'success');
-      navigate('/tasks');
+      login(response.data)
+      showToast(response.data.message || `Welcome back, ${response.data.user.name}`, "success")
+      navigate("/tasks")
     } catch (err: unknown) {
-      const msg = getApiErrorMessage(err);
-      setErrorMessage(msg);
+      const msg = getApiErrorMessage(err)
+      setErrorMessage(msg)
 
-      if (msg.toLowerCase().includes('not verified') || msg.toLowerCase().includes('verify')) {
-        setIsUnverified(true);
+      if (msg.toLowerCase().includes("not verified") || msg.toLowerCase().includes("verify")) {
+        setIsUnverified(true)
       }
     } finally {
-      setIsLoading(false);
+      setIsLoading(false)
     }
-  };
+  }
 
   return (
     <div className="auth-container">
       {/* Brand Header */}
-      <div style={{ textAlign: 'center', marginBottom: '32px' }}>
+      <div style={{ textAlign: "center", marginBottom: "32px" }}>
         <div
           style={{
-            display: 'inline-flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            width: '42px',
-            height: '42px',
-            borderRadius: '50%',
-            backgroundColor: 'var(--color-terracotta-tint)',
-            color: 'var(--color-terracotta)',
-            marginBottom: '16px',
+            display: "inline-flex",
+            alignItems: "center",
+            justifyContent: "center",
+            width: "42px",
+            height: "42px",
+            borderRadius: "50%",
+            backgroundColor: "var(--color-terracotta-tint)",
+            color: "var(--color-terracotta)",
+            marginBottom: "16px",
           }}
         >
-          <span style={{ fontSize: '20px', fontWeight: 600 }}>✦</span>
+          <span style={{ fontSize: "20px", fontWeight: 600 }}>✦</span>
         </div>
         <h1
           className="font-serif"
           style={{
-            fontSize: '32px',
-            letterSpacing: '-0.02em',
-            marginBottom: '8px',
+            fontSize: "32px",
+            letterSpacing: "-0.02em",
+            marginBottom: "8px",
           }}
         >
           Welcome back
         </h1>
-        <p style={{ color: 'var(--color-text-muted)', fontSize: '15px' }}>
+        <p style={{ color: "var(--color-text-muted)", fontSize: "15px" }}>
           Welcome back to your quiet space.
         </p>
       </div>
@@ -92,21 +92,21 @@ export const LoginPage: React.FC = () => {
       <Card elevated>
         <form
           onSubmit={handleSubmit}
-          style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}
+          style={{ display: "flex", flexDirection: "column", gap: "20px" }}
         >
           {/* Verified alert banner if coming from OTP success */}
           {isVerifiedFromRedirect && (
             <div
               style={{
-                backgroundColor: 'var(--color-sage-tint)',
-                border: '1px solid rgba(125, 143, 107, 0.3)',
-                borderRadius: 'var(--radius-md)',
-                padding: '12px 14px',
-                fontSize: '13.5px',
-                color: 'var(--color-sage)',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '8px',
+                backgroundColor: "var(--color-sage-tint)",
+                border: "1px solid rgba(125, 143, 107, 0.3)",
+                borderRadius: "var(--radius-md)",
+                padding: "12px 14px",
+                fontSize: "13.5px",
+                color: "var(--color-sage)",
+                display: "flex",
+                alignItems: "center",
+                gap: "8px",
               }}
             >
               <CheckCircle2 size={16} />
@@ -118,28 +118,28 @@ export const LoginPage: React.FC = () => {
           {isUnverified && (
             <div
               style={{
-                backgroundColor: 'var(--color-terracotta-tint)',
-                border: '1px solid rgba(184, 100, 60, 0.3)',
-                borderRadius: 'var(--radius-md)',
-                padding: '12px 14px',
-                fontSize: '13.5px',
-                color: 'var(--color-terracotta)',
-                display: 'flex',
-                flexDirection: 'column',
-                gap: '6px',
+                backgroundColor: "var(--color-terracotta-tint)",
+                border: "1px solid rgba(184, 100, 60, 0.3)",
+                borderRadius: "var(--radius-md)",
+                padding: "12px 14px",
+                fontSize: "13.5px",
+                color: "var(--color-terracotta)",
+                display: "flex",
+                flexDirection: "column",
+                gap: "6px",
               }}
             >
-              <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
                 <AlertCircle size={16} />
                 <strong>Email address has not been verified yet.</strong>
               </div>
               <Link
                 to={`/verify-otp?email=${encodeURIComponent(email)}`}
                 style={{
-                  color: 'var(--color-terracotta)',
+                  color: "var(--color-terracotta)",
                   fontWeight: 600,
-                  textDecoration: 'underline',
-                  fontSize: '13px',
+                  textDecoration: "underline",
+                  fontSize: "13px",
                 }}
               >
                 Verify your email →
@@ -151,12 +151,12 @@ export const LoginPage: React.FC = () => {
           {errorMessage && !isUnverified && (
             <div
               style={{
-                backgroundColor: 'var(--color-error-bg)',
-                border: '1px solid var(--color-error-border)',
-                borderRadius: 'var(--radius-md)',
-                padding: '12px 14px',
-                fontSize: '13.5px',
-                color: 'var(--color-error)',
+                backgroundColor: "var(--color-error-bg)",
+                border: "1px solid var(--color-error-border)",
+                borderRadius: "var(--radius-md)",
+                padding: "12px 14px",
+                fontSize: "13.5px",
+                color: "var(--color-error)",
               }}
             >
               {errorMessage}
@@ -188,7 +188,7 @@ export const LoginPage: React.FC = () => {
             type="submit"
             variant="primary"
             isLoading={isLoading}
-            style={{ width: '100%', marginTop: '6px' }}
+            style={{ width: "100%", marginTop: "6px" }}
           >
             <span>Log in</span>
             <ArrowRight size={16} />
@@ -198,21 +198,21 @@ export const LoginPage: React.FC = () => {
 
       <div
         style={{
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          marginTop: '24px',
-          fontSize: '13.5px',
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          marginTop: "24px",
+          fontSize: "13.5px",
         }}
       >
-        <p style={{ color: 'var(--color-text-muted)' }}>
-          Don't have an account?{' '}
+        <p style={{ color: "var(--color-text-muted)" }}>
+          Don't have an account?{" "}
           <Link
             to="/register"
             style={{
-              color: 'var(--color-terracotta)',
+              color: "var(--color-terracotta)",
               fontWeight: 500,
-              textDecoration: 'none',
+              textDecoration: "none",
             }}
           >
             Create one
@@ -220,9 +220,9 @@ export const LoginPage: React.FC = () => {
         </p>
         <span
           style={{
-            color: 'var(--color-text-faint)',
-            fontSize: '13px',
-            cursor: 'not-allowed',
+            color: "var(--color-text-faint)",
+            fontSize: "13px",
+            cursor: "not-allowed",
           }}
           title="Password reset via email"
         >
@@ -230,5 +230,5 @@ export const LoginPage: React.FC = () => {
         </span>
       </div>
     </div>
-  );
-};
+  )
+}

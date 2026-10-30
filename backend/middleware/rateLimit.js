@@ -1,4 +1,4 @@
-const rateLimit = require('express-rate-limit');
+const rateLimit = require("express-rate-limit")
 
 const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
@@ -6,12 +6,12 @@ const authLimiter = rateLimit({
   handler: (req, res) => {
     res.status(429).json({
       success: false,
-      message: 'Too many attempts, please try again later.',
-    });
+      message: "Too many attempts, please try again later.",
+    })
   },
   standardHeaders: true,
   legacyHeaders: false,
-});
+})
 
 const apiLimiter = rateLimit({
   windowMs: 1 * 60 * 1000,
@@ -19,11 +19,11 @@ const apiLimiter = rateLimit({
   handler: (req, res) => {
     res.status(429).json({
       success: false,
-      message: 'Too many requests, please slow down.',
-    });
+      message: "Too many requests, please slow down.",
+    })
   },
   standardHeaders: true,
   legacyHeaders: false,
-});
+})
 
-module.exports = { authLimiter, apiLimiter };
+module.exports = { authLimiter, apiLimiter }

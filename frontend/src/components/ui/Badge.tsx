@@ -1,27 +1,27 @@
-import React from 'react';
-import { TaskPriority } from '@/types';
+import React from "react"
+import { TaskPriority } from "@/types"
 
 export interface BadgeProps {
-  children: React.ReactNode;
-  variant?: 'priority' | 'tag' | 'sage';
-  priority?: TaskPriority;
-  className?: string;
-  onClick?: () => void;
+  children: React.ReactNode
+  variant?: "priority" | "tag" | "sage"
+  priority?: TaskPriority
+  className?: string
+  onClick?: () => void
 }
 
 export const Badge: React.FC<BadgeProps> = ({
   children,
-  variant = 'tag',
+  variant = "tag",
   priority,
-  className = '',
+  className = "",
   onClick,
 }) => {
-  let badgeClass = 'badge badge-tag';
+  let badgeClass = "badge badge-tag"
 
-  if (variant === 'priority' && priority) {
-    badgeClass = `badge badge-${priority}`;
-  } else if (variant === 'sage') {
-    badgeClass = 'badge badge-low';
+  if (variant === "priority" && priority) {
+    badgeClass = `badge badge-${priority}`
+  } else if (variant === "sage") {
+    badgeClass = "badge badge-low"
   }
 
   return (
@@ -29,10 +29,10 @@ export const Badge: React.FC<BadgeProps> = ({
       className={`${badgeClass} ${className}`}
       onClick={onClick}
       style={{
-        cursor: onClick ? 'pointer' : 'default',
+        cursor: onClick ? "pointer" : "default",
       }}
     >
       {children}
     </span>
-  );
-};
+  )
+}

@@ -1,7 +1,7 @@
-import React, { InputHTMLAttributes } from 'react';
+import React, { InputHTMLAttributes } from "react"
 
-export interface CheckboxProps extends Omit<InputHTMLAttributes<HTMLInputElement>, 'type'> {
-  label?: React.ReactNode;
+export interface CheckboxProps extends Omit<InputHTMLAttributes<HTMLInputElement>, "type"> {
+  label?: React.ReactNode
 }
 
 export const Checkbox: React.FC<CheckboxProps> = ({
@@ -10,22 +10,22 @@ export const Checkbox: React.FC<CheckboxProps> = ({
   label,
   id,
   disabled,
-  className = '',
+  className = "",
   ...props
 }) => {
   const checkboxId =
-    id || (typeof label === 'string' ? label.toLowerCase().replace(/\s+/g, '-') : undefined);
+    id || (typeof label === "string" ? label.toLowerCase().replace(/\s+/g, "-") : undefined)
 
   return (
     <label
       htmlFor={checkboxId}
       style={{
-        display: 'inline-flex',
-        alignItems: 'center',
-        gap: '10px',
-        cursor: disabled ? 'not-allowed' : 'pointer',
+        display: "inline-flex",
+        alignItems: "center",
+        gap: "10px",
+        cursor: disabled ? "not-allowed" : "pointer",
         opacity: disabled ? 0.6 : 1,
-        userSelect: 'none',
+        userSelect: "none",
       }}
     >
       <input
@@ -40,15 +40,15 @@ export const Checkbox: React.FC<CheckboxProps> = ({
       {label && (
         <span
           style={{
-            fontSize: '14.5px',
-            color: checked ? 'var(--color-text-muted)' : 'var(--color-text-main)',
-            textDecoration: checked ? 'line-through' : 'none',
-            transition: 'color var(--transition-fast)',
+            fontSize: "14.5px",
+            color: checked ? "var(--color-text-muted)" : "var(--color-text-main)",
+            textDecoration: checked ? "line-through" : "none",
+            transition: "color var(--transition-fast)",
           }}
         >
           {label}
         </span>
       )}
     </label>
-  );
-};
+  )
+}

@@ -1,47 +1,47 @@
-const User = require('./../models/User');
-const argon2 = require('argon2');
-const { signAccessToken, signRefreshToken } = require('./../utils/jwt');
+const User = require("./../models/User")
+const argon2 = require("argon2")
+const { signAccessToken, signRefreshToken } = require("./../utils/jwt")
 
 exports.loginController = async (req, res, next) => {
   try {
-    const { email, password } = req.body;
+    const { email, password } = req.body
 
     if (!email || !password) {
       return res.status(400).json({
         success: false,
-        message: 'Please enter all the fields',
-      });
+        message: "Please enter all the fields",
+      })
     }
 
-    const user = await User.findOne({ email });
+    const user = await User.findOne({ email })
 
     if (!user) {
       return res.status(400).json({
         success: false,
-        message: 'User not registered',
-      });
+        message: "User not registered",
+      })
     }
 
     if (!user.isVerified) {
       return res.status(400).json({
         success: false,
-        message: 'Email not verified.',
-      });
+        message: "Email not verified.",
+      })
     }
 
-    const isMatch = await argon2.verify(user.password, password);
+    const isMatch = await argon2.verify(user.password, password)
 
     if (!isMatch) {
       return res.status(400).json({
         success: false,
-        message: 'Invalid email or password',
-      });
+        message: "Invalid email or password",
+      })
     }
 
-    delete user.password;
+    delete user.password
 
-    const accessToken = signAccessToken({ userId: user._id });
-    const refreshToken = signRefreshToken({ userId: user._id });
+    const accessToken = signAccessToken({ userId: user._id })
+    const refreshToken = signRefreshToken({ userId: user._id })
 
     return res.status(200).json({
       success: true,
@@ -49,27 +49,27 @@ exports.loginController = async (req, res, next) => {
       refreshToken,
       message: `Welcome ${user.name}`,
       user,
-    });
+    })
   } catch (error) {
-    console.error(error);
+    console.error(error)
 
     // Categorize errors and provide specific messages
-    if (error.name === 'MongoError') {
+    if (error.name === "MongoError") {
       return res.status(500).json({
         success: false,
-        message: 'Database error, please try again later.',
-      });
-    } else if (error.message.includes('Validation failed')) {
+        message: "Database error, please try again later.",
+      })
+    } else if (error.message.includes("Validation failed")) {
       return res.status(400).json({
         success: false,
-        message: 'Invalid email format.',
-      });
+        message: "Invalid email format.",
+      })
     } else {
       // Handle other unexpected errors
       return res.status(500).json({
         success: false,
-        message: 'Internal server error, please try again later.',
-      });
+        message: "Internal server error, please try again later.",
+      })
     }
   }
-};
+}
